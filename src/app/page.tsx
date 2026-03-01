@@ -1,5 +1,7 @@
-import { ComponentExample } from "@/components/component-example";
-
 export default function Page() {
-return <ComponentExample />;
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <h1 className="text-2xl font-bold">Cardlab</h1>
+    </div>
+  )
 }
