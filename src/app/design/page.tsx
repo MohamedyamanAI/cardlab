@@ -124,6 +124,102 @@ import { Textarea } from "@/components/ui/textarea"
 import { TypingAnimation as TypingAnimationText } from "@/components/magicui/typing-animation"
 import { WarpBackground } from "@/components/magicui/warp-background"
 import { WordRotate } from "@/components/magicui/word-rotate"
+// Aceternity UI Components
+import { BackgroundBeams } from "@/components/aceternity/background-beams"
+import { BentoGrid as AcBentoGrid, BentoGridItem } from "@/components/aceternity/bento-grid"
+import { Timeline } from "@/components/aceternity/timeline"
+import { LayoutGrid } from "@/components/aceternity/layout-grid"
+import { HeroHighlight, Highlight } from "@/components/aceternity/hero-highlight"
+import { AnimatedTooltip } from "@/components/aceternity/animated-tooltip"
+import { FocusCards } from "@/components/aceternity/focus-cards"
+import { TextRevealCard, TextRevealCardTitle, TextRevealCardDescription } from "@/components/aceternity/text-reveal-card"
+import { FloatingDock as AcFloatingDock } from "@/components/aceternity/floating-dock"
+import { Navbar as AcNavbar, NavBody, NavItems, NavbarLogo, NavbarButton } from "@/components/aceternity/resizable-navbar"
+import { FileUpload } from "@/components/aceternity/file-upload"
+import { Cover } from "@/components/aceternity/cover"
+import { Tabs as AcTabs } from "@/components/aceternity/aceternity-tabs"
+import { PlaceholdersAndVanishInput } from "@/components/aceternity/placeholders-and-vanish-input"
+import { TextGenerateEffect } from "@/components/aceternity/text-generate-effect"
+import { TextHoverEffect } from "@/components/aceternity/text-hover-effect"
+import { TypewriterEffect } from "@/components/aceternity/typewriter-effect"
+import WorldMap from "@/components/aceternity/world-map"
+import { SidebarProvider, Sidebar as AcSidebar, SidebarBody, SidebarLink } from "@/components/aceternity/sidebar"
+import { LoaderOne, LoaderTwo, LoaderThree, LoaderFour, LoaderFive } from "@/components/aceternity/loader"
+import { CardContainer, CardBody, CardItem } from "@/components/aceternity/3d-card"
+import { PinContainer } from "@/components/aceternity/3d-pin"
+import { ThreeDMarquee } from "@/components/aceternity/3d-marquee"
+import { AnimatedTestimonials } from "@/components/aceternity/animated-testimonials"
+import { Modal, ModalTrigger, ModalBody, ModalContent } from "@/components/aceternity/animated-modal"
+import { Carousel as AcCarousel } from "@/components/aceternity/apple-cards-carousel"
+import { Card as AppleCard } from "@/components/aceternity/apple-cards-carousel"
+import { AuroraBackground } from "@/components/aceternity/aurora-background"
+import { BackgroundBeamsWithCollision } from "@/components/aceternity/background-beams-with-collision"
+import { BackgroundLines } from "@/components/aceternity/background-lines"
+import { BoxesCore } from "@/components/aceternity/background-boxes"
+import { BackgroundGradient } from "@/components/aceternity/background-gradient"
+import { BackgroundGradientAnimation } from "@/components/aceternity/background-gradient-animation"
+import { CanvasRevealEffect } from "@/components/aceternity/canvas-reveal-effect"
+import { CardSpotlight } from "@/components/aceternity/card-spotlight"
+import { CardStack } from "@/components/aceternity/card-stack"
+import { HoverEffect } from "@/components/aceternity/card-hover-effect"
+import AcCarouselComponent from "@/components/aceternity/carousel"
+import { CodeBlock } from "@/components/aceternity/code-block"
+import ColourfulText from "@/components/aceternity/colourful-text"
+import { CometCard } from "@/components/aceternity/comet-card"
+import { Compare } from "@/components/aceternity/compare"
+import { ContainerTextFlip } from "@/components/aceternity/container-text-flip"
+import { DirectionAwareHover } from "@/components/aceternity/direction-aware-hover"
+import { DraggableCardBody, DraggableCardContainer } from "@/components/aceternity/draggable-card"
+import { EncryptedText } from "@/components/aceternity/encrypted-text"
+import { EvervaultCard } from "@/components/aceternity/evervault-card"
+import { FlipWords } from "@/components/aceternity/flip-words"
+import { FloatingNav } from "@/components/aceternity/floating-navbar"
+import { FollowerPointerCard } from "@/components/aceternity/following-pointer"
+import { GlareCard } from "@/components/aceternity/glare-card"
+import { GlowingStarsBackgroundCard, GlowingStarsTitle, GlowingStarsDescription } from "@/components/aceternity/glowing-stars"
+import { HeroParallax } from "@/components/aceternity/hero-parallax"
+import { HoverBorderGradient } from "@/components/aceternity/hover-border-gradient"
+import { ImagesSlider } from "@/components/aceternity/images-slider"
+import { InfiniteMovingCards } from "@/components/aceternity/infinite-moving-cards"
+import { LampContainer } from "@/components/aceternity/lamp"
+import { LayoutTextFlip } from "@/components/aceternity/layout-text-flip"
+import { Lens } from "@/components/aceternity/lens"
+import { Button as MovingBorderButton } from "@/components/aceternity/moving-border"
+import { Meteors as AcMeteors } from "@/components/aceternity/meteors"
+import { ParallaxScroll } from "@/components/aceternity/parallax-scroll"
+import { PointerHighlight } from "@/components/aceternity/pointer-highlight"
+import { ShootingStars } from "@/components/aceternity/shooting-stars"
+import { StarsBackground } from "@/components/aceternity/stars-background"
+import { Spotlight } from "@/components/aceternity/spotlight"
+import { Spotlight as SpotlightNew } from "@/components/aceternity/spotlight-new"
+import { StickyScroll } from "@/components/aceternity/sticky-scroll-reveal"
+import { MaskContainer } from "@/components/aceternity/svg-mask-effect"
+import { TracingBeam } from "@/components/aceternity/tracing-beam"
+import { Vortex } from "@/components/aceternity/vortex"
+import { WavyBackground } from "@/components/aceternity/wavy-background"
+import { WobbleCard } from "@/components/aceternity/wobble-card"
+import { StickyBanner } from "@/components/aceternity/sticky-banner"
+import { SparklesCore } from "@/components/aceternity/sparkles"
+import { Input as AcInput } from "@/components/aceternity/aceternity-input"
+import { Label as AcLabel } from "@/components/aceternity/aceternity-label"
+import ExpandableCardDemoStandard from "@/components/aceternity/expandable-card-demo-standard"
+import ExpandableCardDemoGrid from "@/components/aceternity/expandable-card-demo-grid"
+import SignupFormDemo from "@/components/aceternity/signup-form-demo"
+import HeroSectionOne from "@/components/aceternity/hero-section-demo-1"
+import FeaturesSectionDemo1 from "@/components/aceternity/features-section-demo-1"
+import FeaturesSectionDemo2 from "@/components/aceternity/features-section-demo-2"
+import FeaturesSectionDemo3 from "@/components/aceternity/features-section-demo-3"
+import {
+  IconHome,
+  IconUser,
+  IconSettings,
+  IconBrandGithub,
+  IconSearch,
+  IconMail,
+  IconCalendar,
+  IconBell,
+} from "@tabler/icons-react"
+
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   PlusSignIcon,
@@ -163,6 +259,7 @@ export default function DesignPage() {
           <TabsList>
             <TabsTrigger value="shadcn">shadcn/ui</TabsTrigger>
             <TabsTrigger value="magicui">Magic UI</TabsTrigger>
+            <TabsTrigger value="aceternity">Aceternity UI</TabsTrigger>
           </TabsList>
 
           <TabsContent value="shadcn">
@@ -192,6 +289,31 @@ export default function DesignPage() {
               <ComponentsSection />
               <DeviceMocksSection />
               <AnimationsSection />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="aceternity">
+            <div className="space-y-16 pt-8">
+              <AcHeroSection />
+              <AcFeatureSectionsSection />
+              <AcTextEffectsSection />
+              <AcBackgroundSection />
+              <AcSparklesSection />
+              <AcBackgroundsExtraSection />
+              <AcLayoutSection />
+              <AcCardsSection />
+              <AcCardsExtraSection />
+              <AcNavigationSection />
+              <AcNavbarSection />
+              <AcFormSection />
+              <AcInputLabelSection />
+              <AcContainerSection />
+              <AcEffectsSection />
+              <AcModalsOverlaysSection />
+              <AcScrollSection />
+              <AcLoadersSection />
+              <AcWorldMapSection />
+              <AcSidebarSection />
             </div>
           </TabsContent>
         </Tabs>
@@ -1371,6 +1493,1173 @@ function AnimationsSection() {
                 <p className="text-sm">Third item fades in with more delay</p>
               </div>
             </BlurFade>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Aceternity UI: Text Effects ──────────────────────────────────────────────
+
+function AcTextEffectsSection() {
+  return (
+    <section>
+      <SectionTitle>Aceternity Text Effects</SectionTitle>
+      <div className="space-y-8">
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Text Generate Effect</p>
+          <TextGenerateEffect words="The quick brown fox jumps over the lazy dog. This text fades in word by word with a beautiful animation." />
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Text Hover Effect</p>
+          <div className="flex h-40 items-center justify-center">
+            <TextHoverEffect text="ACETERNITY" />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Typewriter Effect</p>
+          <div className="flex items-center justify-center py-4">
+            <TypewriterEffect
+              words={[
+                { text: "Build" },
+                { text: "amazing" },
+                { text: "apps" },
+                { text: "with" },
+                { text: "Aceternity.", className: "text-blue-500 dark:text-blue-500" },
+              ]}
+            />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Text Reveal Card</p>
+          <TextRevealCard text="You know the business" revealText="I know the chemistry">
+            <TextRevealCardTitle>Sometimes, you just need to see it.</TextRevealCardTitle>
+            <TextRevealCardDescription>
+              Hover over the card to reveal the hidden text.
+            </TextRevealCardDescription>
+          </TextRevealCard>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Cover</p>
+          <h2 className="text-2xl font-bold">
+            Build products at <Cover>warp speed</Cover>
+          </h2>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Aceternity UI: Background ────────────────────────────────────────────────
+
+function AcBackgroundSection() {
+  return (
+    <section>
+      <SectionTitle>Aceternity Backgrounds</SectionTitle>
+      <div className="space-y-8">
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Background Beams</p>
+          <div className="relative flex h-48 w-full flex-col items-center justify-center overflow-hidden rounded-xl border bg-neutral-950 antialiased">
+            <h3 className="relative z-10 text-lg font-bold text-white">Background Beams</h3>
+            <p className="relative z-10 mt-1 max-w-sm text-center text-sm text-neutral-400">
+              Animated beams create a beautiful background effect
+            </p>
+            <BackgroundBeams />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Hero Highlight</p>
+          <HeroHighlight>
+            <h3 className="mx-auto max-w-xl text-center text-2xl font-bold leading-relaxed">
+              With this component, you can highlight{" "}
+              <Highlight className="text-black dark:text-white">
+                important text
+              </Highlight>{" "}
+              in your hero sections.
+            </h3>
+          </HeroHighlight>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Aceternity UI: Layout ────────────────────────────────────────────────────
+
+function AcLayoutSection() {
+  return (
+    <section>
+      <SectionTitle>Aceternity Layout</SectionTitle>
+      <div className="space-y-8">
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Bento Grid</p>
+          <AcBentoGrid>
+            <BentoGridItem
+              title="The Dawn of Innovation"
+              description="Explore the birth of groundbreaking ideas and inventions."
+              header={<div className="flex h-full min-h-24 w-full rounded-xl bg-gradient-to-br from-violet-500 to-purple-500" />}
+              className="md:col-span-2"
+            />
+            <BentoGridItem
+              title="The Digital Revolution"
+              description="Dive into the transformative power of technology."
+              header={<div className="flex h-full min-h-24 w-full rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500" />}
+            />
+            <BentoGridItem
+              title="The Art of Design"
+              description="Discover the beauty of thoughtful and functional design."
+              header={<div className="flex h-full min-h-24 w-full rounded-xl bg-gradient-to-br from-orange-500 to-yellow-500" />}
+            />
+            <BentoGridItem
+              title="The Power of Communication"
+              description="Understand the impact of effective communication."
+              header={<div className="flex h-full min-h-24 w-full rounded-xl bg-gradient-to-br from-green-500 to-emerald-500" />}
+              className="md:col-span-2"
+            />
+          </AcBentoGrid>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Timeline</p>
+          <div className="relative max-w-2xl">
+            <Timeline
+              data={[
+                {
+                  title: "2024",
+                  content: (
+                    <div>
+                      <p className="text-muted-foreground text-sm">
+                        Launched the new design system with beautiful components and animations.
+                      </p>
+                    </div>
+                  ),
+                },
+                {
+                  title: "2023",
+                  content: (
+                    <div>
+                      <p className="text-muted-foreground text-sm">
+                        Built the foundation with core UI components and dark mode support.
+                      </p>
+                    </div>
+                  ),
+                },
+                {
+                  title: "2022",
+                  content: (
+                    <div>
+                      <p className="text-muted-foreground text-sm">
+                        Started the project with initial prototypes and research.
+                      </p>
+                    </div>
+                  ),
+                },
+              ]}
+            />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Animated Tooltip</p>
+          <div className="flex w-full items-center justify-center py-4">
+            <AnimatedTooltip
+              items={[
+                { id: 1, name: "Alice", designation: "Developer", image: "https://avatars.githubusercontent.com/u/16860528" },
+                { id: 2, name: "Bob", designation: "Designer", image: "https://avatars.githubusercontent.com/u/20110627" },
+                { id: 3, name: "Charlie", designation: "Manager", image: "https://avatars.githubusercontent.com/u/106103625" },
+                { id: 4, name: "Diana", designation: "Engineer", image: "https://avatars.githubusercontent.com/u/59228569" },
+              ]}
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Aceternity UI: Cards ─────────────────────────────────────────────────────
+
+function AcCardsSection() {
+  return (
+    <section>
+      <SectionTitle>Aceternity Cards</SectionTitle>
+      <div className="space-y-8">
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">3D Card Effect</p>
+          <div className="flex items-center justify-center">
+            <CardContainer className="inter-var">
+              <CardBody className="bg-gray-50 relative group/card dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto sm:w-[30rem] h-auto rounded-xl p-6 border">
+                <CardItem translateZ="50" className="text-xl font-bold text-neutral-600 dark:text-white">
+                  Make things float in air
+                </CardItem>
+                <CardItem as="p" translateZ="60" className="text-neutral-500 text-sm max-w-sm mt-2 dark:text-neutral-300">
+                  Hover over this card to unleash the power of CSS perspective
+                </CardItem>
+                <CardItem translateZ="100" className="w-full mt-4">
+                  <div className="h-40 w-full rounded-xl bg-gradient-to-br from-violet-500 to-purple-700" />
+                </CardItem>
+                <div className="flex justify-between items-center mt-6">
+                  <CardItem translateZ={20} as="button" className="px-4 py-2 rounded-xl text-xs font-normal dark:text-white">
+                    Try now →
+                  </CardItem>
+                  <CardItem translateZ={20} as="button" className="px-4 py-2 rounded-xl bg-black dark:bg-white dark:text-black text-white text-xs font-bold">
+                    Sign up
+                  </CardItem>
+                </div>
+              </CardBody>
+            </CardContainer>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Focus Cards</p>
+          <FocusCards
+            cards={[
+              { title: "Mountain Vista", src: "https://images.unsplash.com/photo-1518710843675-2540dd03d51b?w=600" },
+              { title: "Ocean Sunset", src: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600" },
+              { title: "Forest Trail", src: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600" },
+              { title: "City Lights", src: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=600" },
+            ]}
+          />
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Expandable Cards (Standard)</p>
+          <ExpandableCardDemoStandard />
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Expandable Cards (Grid)</p>
+          <ExpandableCardDemoGrid />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Aceternity UI: Navigation ────────────────────────────────────────────────
+
+function AcNavigationSection() {
+  return (
+    <section>
+      <SectionTitle>Aceternity Navigation</SectionTitle>
+      <div className="space-y-8">
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Floating Dock</p>
+          <div className="flex items-center justify-center py-8">
+            <AcFloatingDock
+              items={[
+                { title: "Home", icon: <IconHome className="size-full" />, href: "#" },
+                { title: "Search", icon: <IconSearch className="size-full" />, href: "#" },
+                { title: "Mail", icon: <IconMail className="size-full" />, href: "#" },
+                { title: "Calendar", icon: <IconCalendar className="size-full" />, href: "#" },
+                { title: "Settings", icon: <IconSettings className="size-full" />, href: "#" },
+                { title: "GitHub", icon: <IconBrandGithub className="size-full" />, href: "#" },
+              ]}
+            />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Animated Tabs</p>
+          <div className="relative mx-auto max-w-2xl overflow-hidden rounded-xl border [perspective:1000px]">
+            <AcTabs
+              tabs={[
+                {
+                  title: "Product",
+                  value: "product",
+                  content: (
+                    <div className="relative flex h-48 w-full items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-purple-700 to-violet-900 p-6 text-white">
+                      <p className="text-lg font-bold">Product Tab Content</p>
+                    </div>
+                  ),
+                },
+                {
+                  title: "Services",
+                  value: "services",
+                  content: (
+                    <div className="relative flex h-48 w-full items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-blue-700 to-cyan-900 p-6 text-white">
+                      <p className="text-lg font-bold">Services Tab Content</p>
+                    </div>
+                  ),
+                },
+                {
+                  title: "Pricing",
+                  value: "pricing",
+                  content: (
+                    <div className="relative flex h-48 w-full items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-green-700 to-emerald-900 p-6 text-white">
+                      <p className="text-lg font-bold">Pricing Tab Content</p>
+                    </div>
+                  ),
+                },
+              ]}
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Aceternity UI: Forms ─────────────────────────────────────────────────────
+
+function AcFormSection() {
+  return (
+    <section>
+      <SectionTitle>Aceternity Forms</SectionTitle>
+      <div className="space-y-8">
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Placeholders &amp; Vanish Input</p>
+          <div className="mx-auto max-w-xl">
+            <PlaceholdersAndVanishInput
+              placeholders={[
+                "What is your favorite framework?",
+                "Search for components...",
+                "Type something amazing...",
+                "How can I help you today?",
+              ]}
+              onChange={() => {}}
+              onSubmit={(e) => e.preventDefault()}
+            />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">File Upload</p>
+          <div className="mx-auto max-w-xl">
+            <FileUpload onChange={() => {}} />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Signup Form</p>
+          <div className="mx-auto max-w-md">
+            <SignupFormDemo />
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Aceternity UI: Container ─────────────────────────────────────────────────
+
+function AcContainerSection() {
+  return (
+    <section>
+      <SectionTitle>Aceternity Container</SectionTitle>
+      <div className="space-y-8">
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Layout Grid</p>
+          <LayoutGrid
+            cards={[
+              {
+                id: 1,
+                content: <p className="text-sm font-bold text-white">Mountain Peak</p>,
+                className: "md:col-span-2",
+                thumbnail: "https://images.unsplash.com/photo-1518710843675-2540dd03d51b?w=600",
+              },
+              {
+                id: 2,
+                content: <p className="text-sm font-bold text-white">Ocean Waves</p>,
+                className: "col-span-1",
+                thumbnail: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600",
+              },
+              {
+                id: 3,
+                content: <p className="text-sm font-bold text-white">Deep Forest</p>,
+                className: "col-span-1",
+                thumbnail: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600",
+              },
+              {
+                id: 4,
+                content: <p className="text-sm font-bold text-white">Night City</p>,
+                className: "md:col-span-2",
+                thumbnail: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=600",
+              },
+            ]}
+          />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Aceternity UI: Loaders ───────────────────────────────────────────────────
+
+function AcLoadersSection() {
+  return (
+    <section>
+      <SectionTitle>Aceternity Loaders</SectionTitle>
+      <div className="flex flex-wrap items-center justify-center gap-12 py-8">
+        <div className="flex flex-col items-center gap-3">
+          <LoaderOne />
+          <p className="text-muted-foreground text-xs">Loader One</p>
+        </div>
+        <div className="flex flex-col items-center gap-3">
+          <LoaderTwo />
+          <p className="text-muted-foreground text-xs">Loader Two</p>
+        </div>
+        <div className="flex flex-col items-center gap-3">
+          <LoaderThree />
+          <p className="text-muted-foreground text-xs">Loader Three</p>
+        </div>
+        <div className="flex flex-col items-center gap-3">
+          <LoaderFour />
+          <p className="text-muted-foreground text-xs">Loader Four</p>
+        </div>
+        <div className="flex flex-col items-center gap-3">
+          <LoaderFive text="Loading" />
+          <p className="text-muted-foreground text-xs">Loader Five</p>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Aceternity UI: World Map ─────────────────────────────────────────────────
+
+function AcWorldMapSection() {
+  return (
+    <section>
+      <SectionTitle>Aceternity World Map</SectionTitle>
+      <div className="overflow-hidden rounded-xl border">
+        <WorldMap
+          dots={[
+            { start: { lat: 40.7128, lng: -74.006 }, end: { lat: 51.5074, lng: -0.1278 } },
+            { start: { lat: 35.6762, lng: 139.6503 }, end: { lat: -33.8688, lng: 151.2093 } },
+            { start: { lat: 48.8566, lng: 2.3522 }, end: { lat: 22.3193, lng: 114.1694 } },
+          ]}
+          lineColor="#6366f1"
+        />
+      </div>
+    </section>
+  )
+}
+
+// ─── Aceternity UI: Sidebar ───────────────────────────────────────────────────
+
+function AcSidebarSection() {
+  return (
+    <section>
+      <SectionTitle>Aceternity Sidebar</SectionTitle>
+      <div className="mx-auto max-w-3xl overflow-hidden rounded-xl border">
+        <SidebarProvider>
+          <div className="flex h-64">
+            <AcSidebar>
+              <SidebarBody className="justify-between gap-4">
+                <div className="flex flex-col gap-2">
+                  <SidebarLink link={{ label: "Home", href: "#", icon: <IconHome className="size-5 shrink-0" /> }} />
+                  <SidebarLink link={{ label: "Profile", href: "#", icon: <IconUser className="size-5 shrink-0" /> }} />
+                  <SidebarLink link={{ label: "Settings", href: "#", icon: <IconSettings className="size-5 shrink-0" /> }} />
+                  <SidebarLink link={{ label: "Notifications", href: "#", icon: <IconBell className="size-5 shrink-0" /> }} />
+                </div>
+              </SidebarBody>
+            </AcSidebar>
+            <div className="flex flex-1 items-center justify-center">
+              <p className="text-muted-foreground text-sm">Hover the sidebar to expand it</p>
+            </div>
+          </div>
+        </SidebarProvider>
+      </div>
+    </section>
+  )
+}
+
+// ─── Aceternity UI: Hero Section ──────────────────────────────────────────────
+
+function AcHeroSection() {
+  return (
+    <section>
+      <SectionTitle>Aceternity Hero Section</SectionTitle>
+      <div className="overflow-hidden rounded-xl border">
+        <HeroSectionOne />
+      </div>
+    </section>
+  )
+}
+
+// ─── Aceternity UI: Feature Sections ──────────────────────────────────────────
+
+function AcFeatureSectionsSection() {
+  return (
+    <section>
+      <SectionTitle>Aceternity Feature Sections</SectionTitle>
+      <div className="space-y-12">
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Feature Section — Variant 1</p>
+          <div className="overflow-hidden rounded-xl border">
+            <FeaturesSectionDemo1 />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Feature Section — Variant 2</p>
+          <div className="overflow-hidden rounded-xl border">
+            <FeaturesSectionDemo2 />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Feature Section — Variant 3</p>
+          <div className="overflow-hidden rounded-xl border">
+            <FeaturesSectionDemo3 />
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Aceternity UI: Sparkles ──────────────────────────────────────────────────
+
+function AcSparklesSection() {
+  return (
+    <section>
+      <SectionTitle>Aceternity Sparkles</SectionTitle>
+      <div className="space-y-8">
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Sparkles Core</p>
+          <div className="relative flex h-48 w-full flex-col items-center justify-center overflow-hidden rounded-xl border bg-black">
+            <h3 className="relative z-10 text-center text-2xl font-bold text-white">
+              Sparkle Effect
+            </h3>
+            <div className="relative h-24 w-full">
+              <div className="absolute inset-x-8 top-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent blur-sm" />
+              <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
+              <SparklesCore
+                background="transparent"
+                minSize={0.4}
+                maxSize={1}
+                particleDensity={120}
+                className="h-full w-full"
+                particleColor="#FFFFFF"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Custom Colors</p>
+          <div className="relative flex h-48 w-full flex-col items-center justify-center overflow-hidden rounded-xl border bg-neutral-950">
+            <SparklesCore
+              background="transparent"
+              minSize={0.6}
+              maxSize={1.4}
+              particleDensity={80}
+              className="absolute inset-0 h-full w-full"
+              particleColor="#ff6b6b"
+              speed={2}
+            />
+            <p className="relative z-10 text-sm font-medium text-white">Red sparkles with custom speed</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Aceternity UI: Resizable Navbar ──────────────────────────────────────────
+
+function AcNavbarSection() {
+  return (
+    <section>
+      <SectionTitle>Aceternity Resizable Navbar</SectionTitle>
+      <div className="relative h-64 overflow-hidden rounded-xl border">
+        <AcNavbar className="relative top-2">
+          <NavBody>
+            <NavbarLogo />
+            <NavItems
+              items={[
+                { name: "Home", link: "#" },
+                { name: "About", link: "#" },
+                { name: "Contact", link: "#" },
+              ]}
+            />
+            <NavbarButton variant="primary">Get Started</NavbarButton>
+          </NavBody>
+        </AcNavbar>
+        <div className="flex h-full items-center justify-center pt-16">
+          <p className="text-muted-foreground text-sm">
+            Scroll the page to see the navbar resize
+          </p>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Aceternity UI: Animated Input & Label ────────────────────────────────────
+
+function AcInputLabelSection() {
+  return (
+    <section>
+      <SectionTitle>Aceternity Input &amp; Label</SectionTitle>
+      <div className="mx-auto max-w-md space-y-6 rounded-xl border bg-neutral-950 p-8">
+        <div className="space-y-2">
+          <AcLabel htmlFor="ac-email">Email Address</AcLabel>
+          <AcInput id="ac-email" type="email" placeholder="you@example.com" />
+        </div>
+        <div className="space-y-2">
+          <AcLabel htmlFor="ac-password">Password</AcLabel>
+          <AcInput id="ac-password" type="password" placeholder="••••••••" />
+        </div>
+        <div className="space-y-2">
+          <AcLabel htmlFor="ac-name">Full Name</AcLabel>
+          <AcInput id="ac-name" type="text" placeholder="John Doe" />
+        </div>
+        <p className="text-center text-xs text-neutral-400">
+          Hover the inputs to see the glow effect
+        </p>
+      </div>
+    </section>
+  )
+}
+
+// ─── Aceternity UI: Extra Backgrounds ─────────────────────────────────────────
+
+function AcBackgroundsExtraSection() {
+  return (
+    <section>
+      <SectionTitle>Aceternity Backgrounds (More)</SectionTitle>
+      <div className="space-y-8">
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Aurora Background</p>
+          <AuroraBackground className="rounded-xl">
+            <h3 className="relative z-10 text-center text-2xl font-bold text-white">
+              Aurora Background
+            </h3>
+          </AuroraBackground>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Background Lines</p>
+          <BackgroundLines className="flex h-48 items-center justify-center rounded-xl border">
+            <h3 className="relative z-10 text-center text-2xl font-bold">
+              Background Lines
+            </h3>
+          </BackgroundLines>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Background Beams with Collision</p>
+          <BackgroundBeamsWithCollision className="rounded-xl">
+            <h3 className="relative z-10 text-center text-2xl font-bold">
+              Beams with Collision
+            </h3>
+          </BackgroundBeamsWithCollision>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Wavy Background</p>
+          <WavyBackground className="flex h-48 items-center justify-center rounded-xl" waveOpacity={0.3}>
+            <h3 className="relative z-10 text-center text-2xl font-bold text-white">
+              Wavy Background
+            </h3>
+          </WavyBackground>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Vortex</p>
+          <Vortex className="flex h-48 items-center justify-center rounded-xl" backgroundColor="black" rangeY={200} particleCount={500} baseHue={220}>
+            <h3 className="relative z-10 text-center text-2xl font-bold text-white">Vortex Effect</h3>
+          </Vortex>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Shooting Stars + Stars Background</p>
+          <div className="relative flex h-48 items-center justify-center overflow-hidden rounded-xl border bg-neutral-950">
+            <h3 className="relative z-10 text-center text-lg font-bold text-white">Starry Sky</h3>
+            <ShootingStars />
+            <StarsBackground />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Background Boxes</p>
+          <div className="relative flex h-48 items-center justify-center overflow-hidden rounded-xl border bg-neutral-950">
+            <h3 className="relative z-10 text-center text-lg font-bold text-white">Background Boxes</h3>
+            <BoxesCore className="absolute inset-0" />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Lamp Effect</p>
+          <LampContainer className="rounded-xl">
+            <h3 className="text-center text-2xl font-bold text-white">
+              Lamp Effect
+            </h3>
+          </LampContainer>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Spotlight</p>
+          <div className="relative flex h-48 items-center justify-center overflow-hidden rounded-xl border bg-neutral-950">
+            <Spotlight className="-top-20 left-0 md:-top-20 md:left-60" fill="white" />
+            <h3 className="relative z-10 text-center text-2xl font-bold text-white">Spotlight</h3>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Background Gradient Animation</p>
+          <BackgroundGradientAnimation className="rounded-xl">
+            <div className="pointer-events-none absolute inset-0 z-50 flex items-center justify-center">
+              <h3 className="text-center text-2xl font-bold text-white drop-shadow-2xl">Gradient Animation</h3>
+            </div>
+          </BackgroundGradientAnimation>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Aceternity UI: Extra Cards ───────────────────────────────────────────────
+
+function AcCardsExtraSection() {
+  return (
+    <section>
+      <SectionTitle>Aceternity Cards (More)</SectionTitle>
+      <div className="space-y-8">
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Card Spotlight</p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <CardSpotlight className="p-6">
+              <h3 className="text-lg font-bold text-white">Card Spotlight</h3>
+              <p className="mt-2 text-sm text-neutral-300">Hover to see the spotlight follow your cursor</p>
+            </CardSpotlight>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Card Stack</p>
+          <div className="flex items-center justify-center py-8">
+            <CardStack
+              items={[
+                { id: 0, name: "Alice", designation: "Developer", content: "This is the best component library I have ever used." },
+                { id: 1, name: "Bob", designation: "Designer", content: "The animations are silky smooth and beautiful." },
+                { id: 2, name: "Charlie", designation: "Engineer", content: "Easy to integrate and customize for any project." },
+              ]}
+            />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Glare Card</p>
+          <div className="flex items-center justify-center">
+            <GlareCard className="flex flex-col items-center justify-center p-8">
+              <h3 className="text-lg font-bold text-white">Glare Card</h3>
+              <p className="mt-2 text-center text-sm text-neutral-300">Move your cursor to see the glare effect</p>
+            </GlareCard>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Evervault Card</p>
+          <div className="flex items-center justify-center">
+            <div className="relative mx-auto flex h-64 w-full max-w-sm items-center justify-center overflow-hidden rounded-xl border p-4">
+              <EvervaultCard text="Aceternity" />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Wobble Card</p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <WobbleCard containerClassName="bg-indigo-800 min-h-[200px]">
+              <h3 className="text-lg font-bold text-white">Wobble Card</h3>
+              <p className="mt-2 text-sm text-neutral-200">Hover over me to see the wobble effect</p>
+            </WobbleCard>
+            <WobbleCard containerClassName="bg-pink-800 min-h-[200px]">
+              <h3 className="text-lg font-bold text-white">Another Wobble</h3>
+              <p className="mt-2 text-sm text-neutral-200">Each card wobbles independently</p>
+            </WobbleCard>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Comet Card</p>
+          <div className="flex items-center justify-center">
+            <CometCard className="flex h-64 w-full max-w-sm flex-col items-center justify-center rounded-xl border bg-neutral-950 p-6">
+              <h3 className="text-lg font-bold text-white">Comet Card</h3>
+              <p className="mt-2 text-center text-sm text-neutral-400">Hover to see the comet trail effect</p>
+            </CometCard>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Direction Aware Hover</p>
+          <div className="flex items-center justify-center">
+            <DirectionAwareHover imageUrl="https://images.unsplash.com/photo-1518710843675-2540dd03d51b?w=600">
+              <p className="text-lg font-bold">Mountain Vista</p>
+              <p className="text-sm text-neutral-300">Hover from any direction</p>
+            </DirectionAwareHover>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Card Hover Effect</p>
+          <HoverEffect
+            items={[
+              { title: "Project Alpha", description: "A description of the first project with hover animation", link: "#" },
+              { title: "Project Beta", description: "A description of the second project with hover animation", link: "#" },
+              { title: "Project Gamma", description: "A description of the third project with hover animation", link: "#" },
+            ]}
+          />
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Glowing Stars Card</p>
+          <div className="flex items-center justify-center">
+            <GlowingStarsBackgroundCard className="max-w-md">
+              <GlowingStarsTitle>Next.js Components</GlowingStarsTitle>
+              <GlowingStarsDescription>
+                Beautiful animated components built with Tailwind CSS and Framer Motion
+              </GlowingStarsDescription>
+            </GlowingStarsBackgroundCard>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Following Pointer</p>
+          <FollowerPointerCard title="Aceternity UI" className="rounded-xl border p-8">
+            <h3 className="text-lg font-semibold">Hover me</h3>
+            <p className="text-muted-foreground mt-2 text-sm">The pointer follows your cursor with a custom label</p>
+          </FollowerPointerCard>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">3D Pin</p>
+          <div className="flex h-80 items-center justify-center">
+            <PinContainer title="Visit" href="#">
+              <div className="flex h-32 w-64 flex-col p-4">
+                <h3 className="text-base font-bold text-white">3D Pin</h3>
+                <p className="mt-2 text-sm text-neutral-400">Hover to see the 3D pinned effect</p>
+              </div>
+            </PinContainer>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Background Gradient (Card)</p>
+          <div className="flex items-center justify-center">
+            <BackgroundGradient className="max-w-sm rounded-[22px] bg-white p-4 dark:bg-zinc-900 sm:p-10">
+              <h3 className="text-lg font-bold text-black dark:text-white">Gradient Border</h3>
+              <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+                This card has an animated gradient border effect
+              </p>
+            </BackgroundGradient>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Draggable Card</p>
+          <DraggableCardContainer className="relative flex h-64 items-center justify-center overflow-hidden rounded-xl border">
+            <DraggableCardBody className="rounded-xl bg-neutral-900 p-6">
+              <h3 className="text-lg font-bold text-white">Drag me!</h3>
+              <p className="mt-2 text-sm text-neutral-400">This card can be dragged around</p>
+            </DraggableCardBody>
+          </DraggableCardContainer>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Aceternity UI: Effects & Interactions ────────────────────────────────────
+
+function AcEffectsSection() {
+  return (
+    <section>
+      <SectionTitle>Aceternity Effects &amp; Interactions</SectionTitle>
+      <div className="space-y-8">
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Colourful Text</p>
+          <h2 className="text-3xl font-bold">
+            Build with <ColourfulText text="Colourful Text" />
+          </h2>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Encrypted Text</p>
+          <div className="flex items-center justify-center py-4">
+            <EncryptedText text="ACETERNITY UI" className="text-3xl font-bold" />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Flip Words</p>
+          <div className="flex items-center justify-center py-4 text-2xl font-bold">
+            Build <FlipWords words={["amazing", "beautiful", "modern", "powerful"]} /> websites
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Container Text Flip</p>
+          <ContainerTextFlip words={["innovative", "beautiful", "powerful", "modern"]} />
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Layout Text Flip</p>
+          <LayoutTextFlip text="Build" words={["apps", "sites", "tools", "products"]} />
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Moving Border</p>
+          <div className="flex flex-wrap items-center gap-4">
+            <MovingBorderButton borderRadius="1.75rem" className="bg-white text-black dark:bg-slate-900 dark:text-white">
+              Moving Border
+            </MovingBorderButton>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Hover Border Gradient</p>
+          <div className="flex items-center justify-center">
+            <HoverBorderGradient containerClassName="rounded-full" className="flex items-center space-x-2 bg-white text-black dark:bg-black dark:text-white">
+              <span>Hover Border Gradient</span>
+            </HoverBorderGradient>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Canvas Reveal Effect</p>
+          <div className="flex items-center justify-center">
+            <div className="flex h-48 w-full max-w-sm items-center justify-center overflow-hidden rounded-xl border bg-black">
+              <CanvasRevealEffect animationSpeed={3} containerClassName="bg-black" colors={[[125, 211, 252]]} />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">SVG Mask Effect</p>
+          <MaskContainer
+            revealText={<span className="mx-auto max-w-4xl text-center text-2xl font-bold text-slate-800">The first satisfsatisfying satisfying satisfying satisfying</span>}
+            className="h-40 rounded-xl border"
+          >
+            The first satisfying satisfying satisfying <span className="text-red-500">satisfying</span> satisfying
+          </MaskContainer>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Lens</p>
+          <div className="flex items-center justify-center">
+            <Lens>
+              <div className="rounded-xl bg-gradient-to-br from-indigo-500 to-purple-700 p-8">
+                <h3 className="text-xl font-bold text-white">Lens Effect</h3>
+                <p className="mt-2 text-sm text-white/80">Hover to magnify the content underneath</p>
+              </div>
+            </Lens>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Pointer Highlight</p>
+          <PointerHighlight containerClassName="rounded-xl border p-8">
+            <h3 className="text-lg font-semibold">Pointer Highlight</h3>
+            <p className="text-muted-foreground mt-2 text-sm">Hover to see the pointer highlight effect</p>
+          </PointerHighlight>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Compare</p>
+          <div className="flex items-center justify-center">
+            <Compare
+              firstImage="https://images.unsplash.com/photo-1518710843675-2540dd03d51b?w=600"
+              secondImage="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600"
+              className="h-64 w-full max-w-lg rounded-xl"
+              slideMode="hover"
+            />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Infinite Moving Cards</p>
+          <InfiniteMovingCards
+            items={[
+              { quote: "This is the best component library I have ever used.", name: "Alice", title: "Developer" },
+              { quote: "The animations are silky smooth and beautiful.", name: "Bob", title: "Designer" },
+              { quote: "Easy to integrate and customize for any project.", name: "Charlie", title: "Engineer" },
+              { quote: "Worth every penny. Will buy again!", name: "Diana", title: "Manager" },
+            ]}
+            direction="right"
+            speed="slow"
+          />
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Animated Testimonials</p>
+          <AnimatedTestimonials
+            testimonials={[
+              { quote: "This library changed my workflow completely.", name: "Alice Johnson", designation: "Frontend Developer", src: "https://avatars.githubusercontent.com/u/16860528" },
+              { quote: "Beautiful components with great animations.", name: "Bob Smith", designation: "UI Designer", src: "https://avatars.githubusercontent.com/u/20110627" },
+              { quote: "The best tool for modern web development.", name: "Charlie Brown", designation: "Full Stack Engineer", src: "https://avatars.githubusercontent.com/u/106103625" },
+            ]}
+          />
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Meteors</p>
+          <div className="relative flex h-48 w-full items-center justify-center overflow-hidden rounded-xl border bg-neutral-950">
+            <span className="z-10 text-sm text-white">Meteor shower</span>
+            <AcMeteors number={15} />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Code Block</p>
+          <div className="mx-auto max-w-2xl">
+            <CodeBlock
+              language="tsx"
+              filename="example.tsx"
+              code={`import { Button } from "@/components/ui/button"\n\nexport function MyComponent() {\n  return <Button>Click me</Button>\n}`}
+            />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Images Slider</p>
+          <ImagesSlider
+            images={[
+              "https://images.unsplash.com/photo-1518710843675-2540dd03d51b?w=800",
+              "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800",
+              "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800",
+            ]}
+            className="h-64 rounded-xl"
+          >
+            <div className="z-50 flex flex-col items-center justify-center">
+              <p className="text-2xl font-bold text-white">Image Slider</p>
+            </div>
+          </ImagesSlider>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Parallax Scroll</p>
+          <ParallaxScroll
+            images={[
+              "https://images.unsplash.com/photo-1518710843675-2540dd03d51b?w=400",
+              "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400",
+              "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400",
+              "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=400",
+              "https://images.unsplash.com/photo-1518710843675-2540dd03d51b?w=400",
+              "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400",
+            ]}
+            className="max-h-96"
+          />
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">3D Marquee</p>
+          <ThreeDMarquee
+            images={[
+              "https://images.unsplash.com/photo-1518710843675-2540dd03d51b?w=300",
+              "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300",
+              "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300",
+              "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=300",
+              "https://images.unsplash.com/photo-1518710843675-2540dd03d51b?w=300",
+              "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300",
+              "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300",
+              "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=300",
+            ]}
+            className="rounded-xl"
+          />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Aceternity UI: Modals & Overlays ─────────────────────────────────────────
+
+function AcModalsOverlaysSection() {
+  return (
+    <section>
+      <SectionTitle>Aceternity Modals &amp; Overlays</SectionTitle>
+      <div className="space-y-8">
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Animated Modal</p>
+          <Modal>
+            <ModalTrigger className="flex items-center justify-center rounded-md bg-black px-4 py-2 text-sm text-white dark:bg-white dark:text-black">
+              Open Modal
+            </ModalTrigger>
+            <ModalBody>
+              <ModalContent>
+                <h3 className="text-lg font-bold">Animated Modal</h3>
+                <p className="text-muted-foreground mt-2 text-sm">
+                  This modal animates in with a beautiful spring animation.
+                </p>
+              </ModalContent>
+            </ModalBody>
+          </Modal>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Sticky Banner</p>
+          <div className="relative h-24 overflow-hidden rounded-xl border">
+            <StickyBanner className="relative">
+              This is a sticky banner — it stays at the top on scroll
+            </StickyBanner>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Aceternity UI: Scroll Effects ────────────────────────────────────────────
+
+function AcScrollSection() {
+  return (
+    <section>
+      <SectionTitle>Aceternity Scroll Effects</SectionTitle>
+      <div className="space-y-8">
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Sticky Scroll Reveal</p>
+          <div className="max-h-[500px] overflow-y-auto rounded-xl border">
+            <StickyScroll
+              content={[
+                { title: "Collaborative Editing", description: "Work together in real time with your team. See changes as they happen." },
+                { title: "Real Time Changes", description: "Watch your project evolve in real time. No need to refresh." },
+                { title: "Version Control", description: "Track every change and go back to any version at any time." },
+                { title: "Running Out of Content", description: "Experience the sticky scroll effect as you read through." },
+              ]}
+            />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground mb-3 text-sm font-medium">Tracing Beam</p>
+          <div className="max-h-96 overflow-y-auto rounded-xl border">
+            <TracingBeam className="px-6">
+              <div className="space-y-8 py-8">
+                <div>
+                  <h3 className="text-lg font-bold">Chapter 1</h3>
+                  <p className="text-muted-foreground mt-2 text-sm">
+                    The tracing beam follows your scroll position, creating a beautiful reading indicator.
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold">Chapter 2</h3>
+                  <p className="text-muted-foreground mt-2 text-sm">
+                    As you scroll through this content, the beam traces your progress.
+                    Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold">Chapter 3</h3>
+                  <p className="text-muted-foreground mt-2 text-sm">
+                    Beautiful scroll-linked animations make reading more engaging.
+                    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
+                  </p>
+                </div>
+              </div>
+            </TracingBeam>
           </div>
         </div>
       </div>
