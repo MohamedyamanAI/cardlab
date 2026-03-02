@@ -40,10 +40,10 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
 -- ============================================================================
--- GAMES
+-- PROJECTS
 -- ============================================================================
 
-CREATE TABLE games (
+CREATE TABLE projects (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -59,8 +59,8 @@ CREATE TABLE games (
 
 CREATE TABLE properties (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  game_id UUID NOT NULL REFERENCES games(id) ON DELETE CASCADE,
-  
+  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+
   name TEXT NOT NULL,
   slug TEXT NOT NULL,
   type property_type_enum NOT NULL,
@@ -68,10 +68,10 @@ CREATE TABLE properties (
   options JSONB, -- For 'select' types
   is_required BOOLEAN DEFAULT false,
   sort_order INTEGER DEFAULT 0,
-  
+
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  
-  CONSTRAINT uk_properties_slug UNIQUE(game_id, slug)
+
+  CONSTRAINT uk_properties_slug UNIQUE(project_id, slug)
 );
 
 -- ============================================================================
@@ -80,11 +80,11 @@ CREATE TABLE properties (
 
 CREATE TABLE cards (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  game_id UUID NOT NULL REFERENCES games(id) ON DELETE CASCADE,
-  
+  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+
   data JSONB NOT NULL DEFAULT '{}'::jsonb,
   status status_enum NOT NULL DEFAULT 'draft',
-  
+
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -95,17 +95,17 @@ CREATE TABLE cards (
 
 CREATE TABLE layouts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  game_id UUID NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
-  
+
   width INTEGER NOT NULL DEFAULT 825,
   height INTEGER NOT NULL DEFAULT 1125,
   unit unit_enum DEFAULT 'px',
   bleed_margin INTEGER DEFAULT 37,
-  
-  condition JSONB, 
+
+  condition JSONB,
   canvas_elements JSONB NOT NULL DEFAULT '[]'::jsonb,
-  
+
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -116,7 +116,7 @@ CREATE TABLE layouts (
 
 CREATE TABLE decks (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  game_id UUID NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   description TEXT,
   status status_enum NOT NULL DEFAULT 'draft',
@@ -132,7 +132,7 @@ CREATE TABLE deck_cards (
   deck_id UUID REFERENCES decks(id) ON DELETE CASCADE,
   card_id UUID REFERENCES cards(id) ON DELETE CASCADE,
   quantity INTEGER DEFAULT 1,
-  
+
   CONSTRAINT pk_deck_cards PRIMARY KEY (deck_id, card_id)
 );
 
@@ -141,7 +141,7 @@ CREATE TABLE deck_cards (
 -- ============================================================================
 
 -- Create the storage bucket for user uploads
-INSERT INTO storage.buckets (id, name, public) 
+INSERT INTO storage.buckets (id, name, public)
 VALUES ('media', 'media', false)
 ON CONFLICT (id) DO NOTHING;
 
@@ -153,7 +153,7 @@ CREATE TABLE media (
   size_bytes BIGINT,
   storage_path TEXT NOT NULL,
   type media_type_enum NOT NULL DEFAULT 'image',
-  
+
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -194,7 +194,7 @@ USING (
 CREATE TABLE ai_chats (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  game_id UUID REFERENCES games(id) ON DELETE CASCADE, -- Optional: Link chat to a specific game
+  project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
   title TEXT NOT NULL DEFAULT 'New Chat',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -208,8 +208,8 @@ CREATE TABLE ai_chat_messages (
   tool_calls JSONB,
   tool_call_id TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  
-  CONSTRAINT message_has_content_or_tool_call 
+
+  CONSTRAINT message_has_content_or_tool_call
     CHECK (content IS NOT NULL OR tool_calls IS NOT NULL)
 );
 
@@ -217,12 +217,12 @@ CREATE TABLE ai_chat_messages (
 -- INDEXES
 -- ============================================================================
 
-CREATE INDEX idx_games_user_id ON games(user_id);
-CREATE INDEX idx_properties_game_id ON properties(game_id);
-CREATE INDEX idx_cards_game_id ON cards(game_id);
+CREATE INDEX idx_projects_user_id ON projects(user_id);
+CREATE INDEX idx_properties_project_id ON properties(project_id);
+CREATE INDEX idx_cards_project_id ON cards(project_id);
 CREATE INDEX idx_cards_data ON cards USING gin (data);
-CREATE INDEX idx_layouts_game_id ON layouts(game_id);
-CREATE INDEX idx_decks_game_id ON decks(game_id);
+CREATE INDEX idx_layouts_project_id ON layouts(project_id);
+CREATE INDEX idx_decks_project_id ON decks(project_id);
 CREATE INDEX idx_media_user_id ON media(user_id);
 CREATE INDEX idx_ai_chats_user_id ON ai_chats(user_id);
 CREATE INDEX idx_ai_chat_messages_chat_id ON ai_chat_messages(chat_id);
@@ -232,8 +232,8 @@ CREATE INDEX idx_ai_chat_messages_chat_id ON ai_chat_messages(chat_id);
 -- ============================================================================
 
 COMMENT ON TABLE users IS 'Public profile table extending auth.users';
-COMMENT ON TABLE games IS 'Top-level container for a card game project';
-COMMENT ON TABLE properties IS 'Schema definitions (columns) for cards in a game';
+COMMENT ON TABLE projects IS 'Top-level container for a card project';
+COMMENT ON TABLE properties IS 'Schema definitions (columns) for cards in a project';
 COMMENT ON COLUMN properties.slug IS 'The JSON key used in the cards.data column';
 COMMENT ON COLUMN properties.options IS 'JSON array of string options for select type properties';
 COMMENT ON TABLE cards IS 'Individual cards containing dynamic data based on properties';
@@ -246,7 +246,7 @@ COMMENT ON TABLE deck_cards IS 'Junction table linking cards to decks with quant
 COMMENT ON TABLE media IS 'Metadata for user-uploaded files stored in Supabase Storage';
 COMMENT ON COLUMN media.storage_path IS 'Path in storage bucket: users/{user_id}/{filename}';
 COMMENT ON TABLE ai_chats IS 'Conversation history with the AI assistant';
-COMMENT ON COLUMN ai_chats.game_id IS 'Optional link to a specific game context';
+COMMENT ON COLUMN ai_chats.project_id IS 'Optional link to a specific project context';
 COMMENT ON TABLE ai_chat_messages IS 'Individual messages in a chat session';
 COMMENT ON COLUMN ai_chat_messages.tool_calls IS 'JSON array of tool calls made by the assistant';
 
@@ -255,19 +255,19 @@ COMMENT ON COLUMN ai_chat_messages.tool_calls IS 'JSON array of tool calls made 
 -- ============================================================================
 
 /*
--- 1. Create a Game
-INSERT INTO games (user_id, name) VALUES ('...uuid...', 'Fantasy Battle');
+-- 1. Create a Project
+INSERT INTO projects (user_id, name) VALUES ('...uuid...', 'Fantasy Battle');
 
 -- 2. Define Properties
-INSERT INTO properties (game_id, name, slug, type) VALUES 
-('...game_id...', 'Attack', 'attack', 'number'),
-('...game_id...', 'Name', 'name', 'text');
+INSERT INTO properties (project_id, name, slug, type) VALUES
+('...project_id...', 'Attack', 'attack', 'number'),
+('...project_id...', 'Name', 'name', 'text');
 
 -- 3. Create a Card
-INSERT INTO cards (game_id, data) VALUES 
-('...game_id...', '{"name": "Goblin", "attack": 3}');
+INSERT INTO cards (project_id, data) VALUES
+('...project_id...', '{"name": "Goblin", "attack": 3}');
 
 -- 4. Create a Layout
-INSERT INTO layouts (game_id, name, canvas_elements) VALUES 
-('...game_id...', 'Standard Minion', '[{"type": "text", "bind_to": "name", "x": 10, "y": 10}]');
+INSERT INTO layouts (project_id, name, canvas_elements) VALUES
+('...project_id...', 'Standard Minion', '[{"type": "text", "bind_to": "name", "x": 10, "y": 10}]');
 */

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { AnimatePresence, motion, MotionProps } from "motion/react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils/utils"
 
 type CharacterSet = string[] | readonly string[]
 

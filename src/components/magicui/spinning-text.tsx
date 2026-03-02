@@ -3,7 +3,7 @@
 import React, { ComponentPropsWithoutRef } from "react"
 import { motion, Transition, Variants } from "motion/react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils/utils"
 
 interface SpinningTextProps extends ComponentPropsWithoutRef<"div"> {
   children: string | string[]

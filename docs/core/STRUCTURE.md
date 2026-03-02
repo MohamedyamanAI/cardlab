@@ -1,5 +1,7 @@
 # Folder Structure
 
+supabase gen types typescript --project-id uowxkpfwbmxuinfvysij > lib/supabase/database.types.ts
+
 ## Top-Level Split
 
 ```

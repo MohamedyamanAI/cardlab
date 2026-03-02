@@ -8,7 +8,7 @@ import React, {
   useId,
 } from "react";
 import { motion, useInView } from "motion/react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 
 const useIsomorphicLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;

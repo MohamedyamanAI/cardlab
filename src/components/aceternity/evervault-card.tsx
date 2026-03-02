@@ -2,7 +2,7 @@
 import { useMotionValue } from "motion/react";
 import React, { useState, useEffect } from "react";
 import { useMotionTemplate, motion } from "motion/react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 
 export const EvervaultCard = ({
   text,

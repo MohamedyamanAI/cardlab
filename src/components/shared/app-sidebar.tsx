@@ -10,7 +10,7 @@ import {
   SidebarBody,
   useSidebar,
 } from "@/components/aceternity/sidebar";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import {
   IconBrush,
   IconBulb,

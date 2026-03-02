@@ -7,7 +7,7 @@ import {
   useTransform,
   MotionValue,
 } from "motion/react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 
 type ImagePosition = {
   src: string;

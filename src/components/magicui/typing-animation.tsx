@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { motion, MotionProps, useInView } from "motion/react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils/utils"
 
 interface TypingAnimationProps extends MotionProps {
   children?: string
