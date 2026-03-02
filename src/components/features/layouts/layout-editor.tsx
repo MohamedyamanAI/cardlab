@@ -20,6 +20,8 @@ export function LayoutEditor() {
   const deleteElement = useLayoutEditorStore((s) => s.deleteElement);
   const moveElement = useLayoutEditorStore((s) => s.moveElement);
   const elements = useLayoutEditorStore((s) => s.elements);
+  const undo = useLayoutEditorStore((s) => s.undo);
+  const redo = useLayoutEditorStore((s) => s.redo);
 
   useEffect(() => {
     if (selectedProjectId) {
@@ -41,6 +43,17 @@ export function LayoutEditor() {
       if ((e.metaKey || e.ctrlKey) && e.key === "s") {
         e.preventDefault();
         if (isDirty) saveElements();
+        return;
+      }
+
+      // Cmd/Ctrl+Z → undo, Cmd/Ctrl+Shift+Z → redo
+      if ((e.metaKey || e.ctrlKey) && e.key === "z") {
+        e.preventDefault();
+        if (e.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
         return;
       }
 
@@ -76,7 +89,7 @@ export function LayoutEditor() {
         moveElement(selectedElementId, x, y);
       }
     },
-    [isDirty, saveElements, selectElement, selectedElementId, deleteElement, moveElement, elements]
+    [isDirty, saveElements, selectElement, selectedElementId, deleteElement, moveElement, elements, undo, redo]
   );
 
   useEffect(() => {
