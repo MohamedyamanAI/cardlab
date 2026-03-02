@@ -64,6 +64,7 @@ export async function updateLayout(
     width?: number;
     height?: number;
     bleed_margin?: number;
+    condition?: Json | null;
   }
 ): Promise<Layout> {
   const updateData: Record<string, unknown> = {};
@@ -71,6 +72,7 @@ export async function updateLayout(
   if (input.width !== undefined) updateData.width = input.width;
   if (input.height !== undefined) updateData.height = input.height;
   if (input.bleed_margin !== undefined) updateData.bleed_margin = input.bleed_margin;
+  if (input.condition !== undefined) updateData.condition = input.condition;
 
   const { data, error } = await supabase
     .from("layouts")

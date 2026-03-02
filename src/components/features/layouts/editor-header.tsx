@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { useLayoutEditorStore } from "@/lib/store/layout-editor-store";
 import { CreateLayoutDialog } from "./create-layout-dialog";
+import { ConditionEditor } from "./condition-editor";
 import { IconPlus, IconDeviceFloppy, IconTrash } from "@tabler/icons-react";
 
 export function EditorHeader() {
@@ -57,6 +58,7 @@ export function EditorHeader() {
 
       {currentLayoutId && (
         <>
+          <ConditionEditor />
           <div className="flex-1" />
           {isDirty && (
             <span className="text-xs text-amber-500">Unsaved changes</span>

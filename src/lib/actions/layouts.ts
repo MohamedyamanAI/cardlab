@@ -5,6 +5,7 @@ import * as layoutsRepo from "@/lib/repository/layouts";
 import * as projectsRepo from "@/lib/repository/projects";
 import type { Layout, ActionResult } from "@/lib/types";
 import type { CanvasElement } from "@/lib/types/canvas-elements";
+import type { Json } from "@/lib/supabase/database.types";
 
 async function verifyProjectOwnership(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -80,6 +81,7 @@ export async function updateLayout(
     width?: number;
     height?: number;
     bleed_margin?: number;
+    condition?: Json | null;
   }
 ): Promise<ActionResult<Layout>> {
   const supabase = await createClient();

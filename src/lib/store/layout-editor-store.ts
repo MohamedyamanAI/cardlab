@@ -1,8 +1,11 @@
 import { create } from "zustand";
 import type { Layout } from "@/lib/types";
 import type { CanvasElement } from "@/lib/types/canvas-elements";
+import type { Json } from "@/lib/supabase/database.types";
 import * as layoutActions from "@/lib/actions/layouts";
 import { toast } from "sonner";
+
+const MAX_HISTORY = 100;
 
 interface LayoutEditorState {
   // Data
@@ -13,6 +16,14 @@ interface LayoutEditorState {
   selectedElementId: string | null;
   previewCardIndex: number; // -1 = no preview
   isSaving: boolean;
+
+  // Undo/redo
+  history: CanvasElement[][];
+  future: CanvasElement[][];
+  undo: () => void;
+  redo: () => void;
+  canUndo: () => boolean;
+  canRedo: () => boolean;
 
   // Layout CRUD
   loadLayouts: (projectId: string) => Promise<void>;
@@ -37,8 +48,22 @@ interface LayoutEditorState {
   // Persistence
   saveElements: () => Promise<void>;
 
+  // Condition
+  updateLayoutCondition: (
+    layoutId: string,
+    condition: Json | null
+  ) => Promise<void>;
+
   // Preview
   setPreviewCardIndex: (index: number) => void;
+}
+
+/** Push current elements onto undo stack, clear redo */
+function pushHistory(state: LayoutEditorState) {
+  return {
+    history: [...state.history, state.elements].slice(-MAX_HISTORY),
+    future: [] as CanvasElement[][],
+  };
 }
 
 export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
@@ -49,6 +74,35 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
   selectedElementId: null,
   previewCardIndex: -1,
   isSaving: false,
+  history: [],
+  future: [],
+
+  undo: () => {
+    const { history, elements } = get();
+    if (history.length === 0) return;
+    const previous = history[history.length - 1];
+    set({
+      elements: previous,
+      history: history.slice(0, -1),
+      future: [elements, ...get().future],
+      isDirty: true,
+    });
+  },
+
+  redo: () => {
+    const { future, elements } = get();
+    if (future.length === 0) return;
+    const next = future[0];
+    set({
+      elements: next,
+      future: future.slice(1),
+      history: [...get().history, elements],
+      isDirty: true,
+    });
+  },
+
+  canUndo: () => get().history.length > 0,
+  canRedo: () => get().future.length > 0,
 
   loadLayouts: async (projectId) => {
     const result = await layoutActions.getLayouts(projectId);
@@ -66,6 +120,8 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
         elements: [],
         isDirty: false,
         selectedElementId: null,
+        history: [],
+        future: [],
       });
       return;
     }
@@ -82,6 +138,8 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
       elements,
       isDirty: false,
       selectedElementId: null,
+      history: [],
+      future: [],
     });
   },
 
@@ -118,6 +176,7 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
       -1
     );
     set((state) => ({
+      ...pushHistory(state),
       elements: [...state.elements, { ...element, z_index: maxZ + 1 }],
       isDirty: true,
       selectedElementId: element.id,
@@ -126,6 +185,7 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
 
   updateElement: (id, partial) => {
     set((state) => ({
+      ...pushHistory(state),
       elements: state.elements.map((el) =>
         el.id === id ? ({ ...el, ...partial } as CanvasElement) : el
       ),
@@ -135,6 +195,7 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
 
   deleteElement: (id) => {
     set((state) => ({
+      ...pushHistory(state),
       elements: state.elements.filter((el) => el.id !== id),
       isDirty: true,
       selectedElementId:
@@ -148,6 +209,7 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
 
   moveElement: (id, x, y) => {
     set((state) => ({
+      ...pushHistory(state),
       elements: state.elements.map((el) =>
         el.id === id ? { ...el, x: Math.round(x), y: Math.round(y) } : el
       ),
@@ -157,6 +219,7 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
 
   resizeElement: (id, w, h) => {
     set((state) => ({
+      ...pushHistory(state),
       elements: state.elements.map((el) =>
         el.id === id
           ? { ...el, width: Math.round(w), height: Math.round(h) }
@@ -179,6 +242,7 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
     const swapZ = sorted[swapIndex].z_index;
 
     set((state) => ({
+      ...pushHistory(state),
       elements: state.elements.map((el) => {
         if (el.id === id) return { ...el, z_index: swapZ };
         if (el.id === sorted[swapIndex].id) return { ...el, z_index: thisZ };
@@ -212,6 +276,19 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
       toast.success("Layout saved");
     } else {
       set({ isSaving: false });
+      toast.error(result.error);
+    }
+  },
+
+  updateLayoutCondition: async (layoutId, condition) => {
+    const result = await layoutActions.updateLayout(layoutId, { condition });
+    if (result.success) {
+      set((state) => ({
+        layouts: state.layouts.map((l) =>
+          l.id === layoutId ? { ...l, condition } : l
+        ),
+      }));
+    } else {
       toast.error(result.error);
     }
   },
