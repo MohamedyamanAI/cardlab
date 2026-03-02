@@ -341,7 +341,7 @@ export function ImageGallery({
                     className="overflow-visible"
                   >
                     <div
-                      className={`group relative cursor-pointer overflow-hidden rounded-xl bg-muted transition-all duration-200 hover:z-10 hover:scale-110 ${
+                      className={`group relative cursor-pointer overflow-hidden rounded-xl bg-muted transition-all duration-200 hover:z-10 hover:scale-105 ${
                         selectedIds.has(item.id)
                           ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
                           : ""

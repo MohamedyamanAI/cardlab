@@ -10,7 +10,7 @@ type ImageCardProps = {
 export function ImageCard({ image, onClick }: ImageCardProps) {
   return (
     <div
-      className="group relative cursor-pointer overflow-hidden rounded-xl bg-muted transition-transform duration-200 hover:z-10 hover:scale-110"
+      className="group relative cursor-pointer overflow-hidden rounded-xl bg-muted transition-transform duration-200 hover:z-10 hover:scale-105"
       onClick={onClick}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
