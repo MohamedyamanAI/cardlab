@@ -4,9 +4,9 @@ import { useEffect, useCallback } from "react";
 import { useLayoutEditorStore } from "@/lib/store/layout-editor-store";
 import { useCardsStore } from "@/lib/store/cards-store";
 import { EditorHeader } from "./editor-header";
-import { ElementsPanel } from "./elements-panel";
-import { CanvasViewport } from "./canvas-viewport";
-import { PropertiesPanel } from "./properties-panel";
+import { ElementsPanel } from "./panels/elements-panel";
+import { CanvasViewport } from "./canvas/canvas-viewport";
+import { PropertiesPanel } from "./panels/properties-panel";
 
 export function LayoutEditor() {
   const selectedProjectId = useCardsStore((s) => s.selectedProjectId);

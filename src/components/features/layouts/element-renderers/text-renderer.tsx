@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import type { TextElement } from "@/lib/types/canvas-elements";
 import { generateHTML } from "@tiptap/react";
-import { richTextExtensions } from "../rich-text-editor-setup";
+import { richTextExtensions } from "../rich-text/rich-text-editor-setup";
 
 interface TextRendererProps {
   element: TextElement;

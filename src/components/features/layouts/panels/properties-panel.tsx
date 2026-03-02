@@ -3,14 +3,14 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLayoutEditorStore } from "@/lib/store/layout-editor-store";
 import { useCardsStore } from "@/lib/store/cards-store";
-import { PositionSection } from "./property-sections/position-section";
-import { BindingSection } from "./property-sections/binding-section";
-import { AppearanceSection } from "./property-sections/appearance-section";
-import { ShadowSection } from "./property-sections/shadow-section";
-import { TextStyleSection } from "./property-sections/text-style-section";
-import { ImageStyleSection } from "./property-sections/image-style-section";
-import { ShapeStyleSection } from "./property-sections/shape-style-section";
-import { CanvasSizeSection } from "./property-sections/canvas-size-section";
+import { PositionSection } from "../property-sections/position-section";
+import { BindingSection } from "../property-sections/binding-section";
+import { AppearanceSection } from "../property-sections/appearance-section";
+import { ShadowSection } from "../property-sections/shadow-section";
+import { TextStyleSection } from "../property-sections/text-style-section";
+import { ImageStyleSection } from "../property-sections/image-style-section";
+import { ShapeStyleSection } from "../property-sections/shape-style-section";
+import { CanvasSizeSection } from "../property-sections/canvas-size-section";
 import { AlignmentToolbar } from "./alignment-toolbar";
 
 export function PropertiesPanel() {
