@@ -15,6 +15,7 @@ export function CanvasViewport() {
   const isPanningRef = useRef(false);
   const panStartRef = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
   const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
+  const [viewReady, setViewReady] = useState(false);
 
   const layouts = useLayoutEditorStore((s) => s.layouts);
   const currentLayoutId = useLayoutEditorStore((s) => s.currentLayoutId);
@@ -46,6 +47,7 @@ export function CanvasViewport() {
   const autoFit = useCallback(() => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
     const availW = rect.width - rulerOffset;
     const availH = rect.height - rulerOffset;
     const padding = 40;
@@ -58,11 +60,18 @@ export function CanvasViewport() {
     const fitPanY = (availH - canvasHeight * fitZoom) / 2 + rulerOffset;
     setZoom(fitZoom);
     setPan(fitPanX, fitPanY);
+    setViewReady(true);
   }, [canvasWidth, canvasHeight, setZoom, setPan, rulerOffset]);
 
-  // Auto-fit on mount, layout change, and container resize
+  // Re-center when layout changes
   useEffect(() => {
-    autoFit();
+    setViewReady(false);
+    // autoFit will be called by ResizeObserver or the rAF below
+    requestAnimationFrame(autoFit);
+  }, [currentLayoutId, autoFit]);
+
+  // Auto-fit via ResizeObserver (fires once container has real dimensions)
+  useEffect(() => {
     const observer = new ResizeObserver(autoFit);
     if (containerRef.current) observer.observe(containerRef.current);
     return () => observer.disconnect();
@@ -170,7 +179,7 @@ export function CanvasViewport() {
         />
       )}
 
-      {/* Canvas layer */}
+      {/* Canvas layer — hidden until autoFit computes initial position */}
       <div
         style={{
           position: "absolute",
@@ -178,6 +187,7 @@ export function CanvasViewport() {
           top: 0,
           transformOrigin: "0 0",
           transform: `translate(${panX}px, ${panY}px) scale(${zoom})`,
+          visibility: viewReady ? "visible" : "hidden",
         }}
       >
         <div

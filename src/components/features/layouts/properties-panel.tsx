@@ -5,6 +5,8 @@ import { useLayoutEditorStore } from "@/lib/store/layout-editor-store";
 import { useCardsStore } from "@/lib/store/cards-store";
 import { PositionSection } from "./property-sections/position-section";
 import { BindingSection } from "./property-sections/binding-section";
+import { AppearanceSection } from "./property-sections/appearance-section";
+import { ShadowSection } from "./property-sections/shadow-section";
 import { TextStyleSection } from "./property-sections/text-style-section";
 import { ImageStyleSection } from "./property-sections/image-style-section";
 import { ShapeStyleSection } from "./property-sections/shape-style-section";
@@ -82,6 +84,9 @@ export function PropertiesPanel() {
           {element.type === "text" && <TextStyleSection element={element} />}
           {element.type === "image" && <ImageStyleSection element={element} />}
           {element.type === "shape" && <ShapeStyleSection element={element} />}
+
+          <AppearanceSection element={element} />
+          <ShadowSection element={element} />
         </div>
       </ScrollArea>
     </div>

@@ -15,7 +15,6 @@ export function ShapeRenderer({ element }: ShapeRendererProps) {
             ? `${element.stroke_width ?? 1}px solid ${element.stroke}`
             : "none",
         borderRadius: element.border_radius ?? 0,
-        opacity: element.opacity ?? 1,
       }}
     />
   );

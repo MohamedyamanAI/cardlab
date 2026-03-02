@@ -155,7 +155,7 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
   panX: 0,
   panY: 0,
   isSpaceHeld: false,
-  showRulers: true,
+  showRulers: false,
   rulerUnit: "px" as RulerUnit,
   history: [],
   future: [],

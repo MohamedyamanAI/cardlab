@@ -1,3 +1,11 @@
+export interface BoxShadow {
+  color: string;
+  offset_x: number;
+  offset_y: number;
+  blur: number;
+  spread: number;
+}
+
 export interface BaseElement {
   id: string;
   type: "text" | "image" | "shape";
@@ -7,6 +15,12 @@ export interface BaseElement {
   height: number;
   z_index: number;
   bind_to?: string; // property slug
+  opacity?: number; // default 1
+  blend_mode?: string; // default "normal"
+  rotation?: number; // default 0 (degrees)
+  locked?: boolean; // default false
+  hidden?: boolean; // default false
+  box_shadow?: BoxShadow;
 }
 
 export interface TextElement extends BaseElement {
@@ -33,7 +47,6 @@ export interface ShapeElement extends BaseElement {
   stroke?: string;
   stroke_width?: number;
   border_radius?: number;
-  opacity?: number;
 }
 
 export type CanvasElement = TextElement | ImageElement | ShapeElement;

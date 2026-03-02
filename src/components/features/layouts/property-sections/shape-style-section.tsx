@@ -83,22 +83,6 @@ export function ShapeStyleSection({ element }: ShapeStyleSectionProps) {
         </div>
       </div>
 
-      <div>
-        <Label className="text-xs">Opacity</Label>
-        <Input
-          type="number"
-          min={0}
-          max={1}
-          step={0.05}
-          value={element.opacity ?? 1}
-          onChange={(e) => {
-            const v = parseFloat(e.target.value);
-            if (!isNaN(v) && v >= 0 && v <= 1)
-              updateElement(element.id, { opacity: v });
-          }}
-          className="h-7 text-xs"
-        />
-      </div>
     </div>
   );
 }

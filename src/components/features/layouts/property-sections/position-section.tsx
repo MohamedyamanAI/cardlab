@@ -57,6 +57,21 @@ export function PositionSection({ element }: PositionSectionProps) {
             className="h-7 text-xs"
           />
         </div>
+        <div className="col-span-2">
+          <Label className="text-xs">Rotation</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              type="number"
+              value={element.rotation ?? 0}
+              onChange={(e) => {
+                const v = parseFloat(e.target.value);
+                if (!isNaN(v)) updateElement(element.id, { rotation: v });
+              }}
+              className="h-7 flex-1 text-xs"
+            />
+            <span className="text-xs text-muted-foreground">deg</span>
+          </div>
+        </div>
       </div>
     </div>
   );

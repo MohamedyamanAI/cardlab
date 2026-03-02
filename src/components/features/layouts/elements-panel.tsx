@@ -23,6 +23,8 @@ import {
   IconEyeOff,
   IconChevronLeft,
   IconChevronRight,
+  IconLock,
+  IconLockOpen,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils/utils";
 import type { Json } from "@/lib/supabase/database.types";
@@ -34,6 +36,7 @@ export function ElementsPanel() {
   const selectElement = useLayoutEditorStore((s) => s.selectElement);
   const deleteElement = useLayoutEditorStore((s) => s.deleteElement);
   const reorderElement = useLayoutEditorStore((s) => s.reorderElement);
+  const updateElement = useLayoutEditorStore((s) => s.updateElement);
   const previewCardIndex = useLayoutEditorStore((s) => s.previewCardIndex);
   const setPreviewCardIndex = useLayoutEditorStore((s) => s.setPreviewCardIndex);
   const layouts = useLayoutEditorStore((s) => s.layouts);
@@ -134,7 +137,8 @@ export function ElementsPanel() {
                   "group flex cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs transition-colors",
                   selectedElementIds.has(el.id)
                     ? "bg-accent text-accent-foreground"
-                    : "hover:bg-muted"
+                    : "hover:bg-muted",
+                  el.hidden && "opacity-40"
                 )}
                 onClick={(e) => selectElement(el.id, e.shiftKey)}
               >
@@ -148,25 +152,47 @@ export function ElementsPanel() {
                       ? el.static_text
                       : el.type}
                 </span>
-                <div className="hidden gap-0.5 group-hover:flex">
+                <div className="flex gap-0.5">
+                  {/* Lock/hide always visible as indicators */}
                   <button
-                    onClick={(e) => { e.stopPropagation(); reorderElement(el.id, "up"); }}
-                    className="rounded p-0.5 hover:bg-background"
+                    onClick={(e) => { e.stopPropagation(); updateElement(el.id, { hidden: !el.hidden }); }}
+                    className={cn("rounded p-0.5 hover:bg-background", !el.hidden && "hidden group-hover:block")}
+                    title={el.hidden ? "Show" : "Hide"}
                   >
-                    <IconArrowUp className="size-3" />
+                    {el.hidden
+                      ? <IconEyeOff className="size-3 text-muted-foreground" />
+                      : <IconEye className="size-3" />}
                   </button>
                   <button
-                    onClick={(e) => { e.stopPropagation(); reorderElement(el.id, "down"); }}
-                    className="rounded p-0.5 hover:bg-background"
+                    onClick={(e) => { e.stopPropagation(); updateElement(el.id, { locked: !el.locked }); }}
+                    className={cn("rounded p-0.5 hover:bg-background", !el.locked && "hidden group-hover:block")}
+                    title={el.locked ? "Unlock" : "Lock"}
                   >
-                    <IconArrowDown className="size-3" />
+                    {el.locked
+                      ? <IconLock className="size-3 text-muted-foreground" />
+                      : <IconLockOpen className="size-3" />}
                   </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); deleteElement(el.id); }}
-                    className="rounded p-0.5 text-destructive hover:bg-background"
-                  >
-                    <IconTrash className="size-3" />
-                  </button>
+                  {/* Reorder & delete on hover */}
+                  <div className="hidden gap-0.5 group-hover:flex">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); reorderElement(el.id, "up"); }}
+                      className="rounded p-0.5 hover:bg-background"
+                    >
+                      <IconArrowUp className="size-3" />
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); reorderElement(el.id, "down"); }}
+                      className="rounded p-0.5 hover:bg-background"
+                    >
+                      <IconArrowDown className="size-3" />
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); deleteElement(el.id); }}
+                      className="rounded p-0.5 text-destructive hover:bg-background"
+                    >
+                      <IconTrash className="size-3" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
