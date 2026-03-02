@@ -1,10 +1,9 @@
-export default function IdeatorPage() {
-  return (
-    <div>
-      <h1 className="text-2xl font-bold">Ideator</h1>
-      <p className="mt-2 text-muted-foreground">
-        Brainstorm and develop ideas for your card games.
-      </p>
-    </div>
-  );
+import { IdeatorClient } from "@/components/features/ideator";
+import { getChats } from "@/lib/actions/chats";
+
+export default async function IdeatorPage() {
+  const result = await getChats();
+  const chats = result.success ? result.data : [];
+
+  return <IdeatorClient initialChats={chats} />;
 }
