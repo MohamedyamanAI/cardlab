@@ -18,6 +18,7 @@ docs/               → Architecture documentation
 scripts/            → CLI utilities (seeding, codegen)
 tests/              → Test suites
 public/             → Static assets
+src/hooks/          → Custom React hooks
 ```
 
 ## Route Groups
@@ -39,13 +40,26 @@ Each group has its own `layout.tsx`:
 
 ### App Routes
 
-The `(app)` layout provides auth guard + the app shell (sidebar with Games and Cards, header with user info):
+The `(app)` layout provides auth guard + the app shell (sidebar, header with user info):
 
 ```
 (app)/
 ├── layout.tsx      → Auth guard + sidebar + header
-├── games/          → /games
-└── cards/          → /cards
+├── projects/       → /projects (project management)
+├── cards/          → /cards (card library)
+├── ideator/        → /ideator (idea generation)
+├── generator/      → /generator (card generation)
+├── tester/         → /tester (playtesting)
+├── print-ship/     → /print-ship (print & shipping)
+└── docs/           → /docs (documentation)
+```
+
+### Design Route
+
+`design/` sits outside route groups as a standalone dev page for browsing UI components:
+
+```
+design/             → /design (component showcase)
 ```
 
 ### Auth Routes
@@ -67,14 +81,15 @@ auth/
 
 ## Components
 
-Split into four tiers by scope:
+Split by scope and origin:
 
 ```
 components/
-├── ui/             → Generic primitives (button, input, dialog, card)
-├── shared/         → Cross-feature components (navbar, sidebar, footer)
+├── ui/             → Generic primitives (button, input, dialog, card) — shadcn/ui
+├── magicui/        → Magic UI component library (effects, animations, backgrounds)
+├── aceternity/     → Aceternity UI component library (cards, heroes, backgrounds)
+├── shared/         → Cross-feature components (sidebar, sign-out button)
 ├── features/       → Feature-specific components (one subfolder per feature)
-│   ├── games/
 │   └── cards/
 └── auth/           → Authentication form components
 ```
@@ -83,8 +98,8 @@ Import rules:
 
 | Tier | Imports from | Imported by |
 |------|-------------|-------------|
-| `ui/` | Nothing in the project | Everything |
-| `shared/` | `ui/` | Page routes, feature components |
+| `ui/`, `magicui/`, `aceternity/` | Nothing in the project | Everything |
+| `shared/` | `ui/`, `magicui/`, `aceternity/` | Page routes, feature components |
 | `features/` | `ui/`, `shared/`, `lib/` | Page routes only (not other features) |
 | `auth/` | `ui/`, `lib/` | Auth page routes only |
 
@@ -150,6 +165,5 @@ tests/
 `src/proxy.ts` handles session refresh and route protection:
 
 - Refreshes Supabase auth session on every request
-- Redirects `/` to `/games` (authenticated) or `/auth/login` (unauthenticated)
-- Redirects unauthenticated users away from protected routes (`/games`, `/cards`) → `/auth/login`
-- Redirects authenticated users away from auth routes (`/auth/*`) → `/games`
+- Redirects unauthenticated users away from protected routes (`/projects`, `/cards`, `/ideator`, `/generator`, `/tester`, `/print-ship`, `/docs`) → `/auth/login`
+- Redirects authenticated users away from auth routes (`/auth/*`) → `/projects`
