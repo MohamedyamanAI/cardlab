@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useCardsStore } from "@/lib/store/cards-store";
 import { AddColumnPopover } from "./add-column-popover";
 import { ImportDialog } from "./import-dialog";
+import { ExportDropdown } from "./export-dropdown";
 import {
   IconPlus,
   IconTrash,
@@ -53,6 +54,8 @@ export function CardsToolbar({ previewOpen, onTogglePreview }: CardsToolbarProps
         Import
       </Button>
       <ImportDialog open={importOpen} onOpenChange={setImportOpen} />
+
+      <ExportDropdown />
 
       {selectionCount > 0 && (
         <>
