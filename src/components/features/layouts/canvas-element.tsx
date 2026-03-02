@@ -9,6 +9,7 @@ import { useLayoutEditorStore } from "@/lib/store/layout-editor-store";
 import { TextRenderer } from "./element-renderers/text-renderer";
 import { ImageRenderer } from "./element-renderers/image-renderer";
 import { ShapeRenderer } from "./element-renderers/shape-renderer";
+import { InlineRichTextEditor } from "./inline-rich-text-editor";
 import { cn } from "@/lib/utils/utils";
 
 interface CanvasElementProps {
@@ -35,11 +36,14 @@ export function CanvasElementWrapper({
   const moveSelectedElements = useLayoutEditorStore((s) => s.moveSelectedElements);
   const resizeElement = useLayoutEditorStore((s) => s.resizeElement);
   const updateElement = useLayoutEditorStore((s) => s.updateElement);
+  const editingElementId = useLayoutEditorStore((s) => s.editingElementId);
+  const setEditingElement = useLayoutEditorStore((s) => s.setEditingElement);
 
   const isSelected = selectedElementIds.has(element.id);
   const multiSelected = selectedElementIds.size > 1;
   const isLocked = element.locked ?? false;
   const isHidden = element.hidden ?? false;
+  const isEditing = editingElementId === element.id;
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
   const rotateStartRef = useRef<{ startAngle: number; startRotation: number } | null>(null);
 
@@ -112,7 +116,7 @@ export function CanvasElementWrapper({
       size={{ width: element.width, height: element.height }}
       scale={scale}
       bounds="parent"
-      disableDragging={isLocked}
+      disableDragging={isLocked || isEditing}
       onDragStart={(e) => {
         if (isLocked) return;
         e.stopPropagation();
@@ -157,7 +161,7 @@ export function CanvasElementWrapper({
         "group/el",
         isSelected && (isLocked ? "ring-2 ring-gray-400" : "ring-2 ring-blue-500")
       )}
-      enableResizing={isSelected && !multiSelected && !isLocked}
+      enableResizing={isSelected && !multiSelected && !isLocked && !isEditing}
       resizeHandleStyles={{
         topLeft: { cursor: "nwse-resize" },
         topRight: { cursor: "nesw-resize" },
@@ -187,9 +191,18 @@ export function CanvasElementWrapper({
           boxShadow: boxShadowCSS(element),
           transform: rotation !== 0 ? `rotate(${rotation}deg)` : undefined,
         }}
+        onDoubleClick={(e) => {
+          if (element.type === "text" && !isLocked) {
+            e.stopPropagation();
+            setEditingElement(element.id);
+          }
+        }}
       >
-        {element.type === "text" && (
+        {element.type === "text" && !isEditing && (
           <TextRenderer element={element} previewValue={previewValue} />
+        )}
+        {element.type === "text" && isEditing && (
+          <InlineRichTextEditor element={element} />
         )}
         {element.type === "image" && (
           <ImageRenderer element={element} previewValue={previewValue} />

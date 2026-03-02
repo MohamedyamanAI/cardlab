@@ -11,6 +11,8 @@ import {
   createTextElement,
   createImageElement,
   createShapeElement,
+  createEllipseElement,
+  createLineElement,
 } from "@/lib/utils/canvas-element-factory";
 import {
   IconTypography,
@@ -25,8 +27,11 @@ import {
   IconChevronRight,
   IconLock,
   IconLockOpen,
+  IconCircle,
+  IconMinus,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils/utils";
+import type { ShapeElement } from "@/lib/types/canvas-elements";
 import type { Json } from "@/lib/supabase/database.types";
 
 export function ElementsPanel() {
@@ -96,12 +101,13 @@ export function ElementsPanel() {
         <h3 className="mb-2 text-xs font-medium text-muted-foreground uppercase">
           Add Element
         </h3>
-        <div className="flex gap-1">
+        <div className="flex flex-wrap gap-1">
           <Button
             variant="outline"
             size="sm"
             className="flex-1"
             onClick={() => addElement(createTextElement())}
+            title="Text"
           >
             <IconTypography className="size-4" />
           </Button>
@@ -110,6 +116,7 @@ export function ElementsPanel() {
             size="sm"
             className="flex-1"
             onClick={() => addElement(createImageElement())}
+            title="Image"
           >
             <IconPhoto className="size-4" />
           </Button>
@@ -118,8 +125,27 @@ export function ElementsPanel() {
             size="sm"
             className="flex-1"
             onClick={() => addElement(createShapeElement())}
+            title="Rectangle"
           >
             <IconSquare className="size-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            onClick={() => addElement(createEllipseElement())}
+            title="Ellipse"
+          >
+            <IconCircle className="size-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            onClick={() => addElement(createLineElement())}
+            title="Line"
+          >
+            <IconMinus className="size-4" />
           </Button>
         </div>
       </div>
@@ -144,7 +170,9 @@ export function ElementsPanel() {
               >
                 {el.type === "text" && <IconTypography className="size-3.5 shrink-0" />}
                 {el.type === "image" && <IconPhoto className="size-3.5 shrink-0" />}
-                {el.type === "shape" && <IconSquare className="size-3.5 shrink-0" />}
+                {el.type === "shape" && (el as ShapeElement).shape_type === "ellipse" && <IconCircle className="size-3.5 shrink-0" />}
+                {el.type === "shape" && (el as ShapeElement).shape_type === "line" && <IconMinus className="size-3.5 shrink-0" />}
+                {el.type === "shape" && ((el as ShapeElement).shape_type ?? "rectangle") === "rectangle" && <IconSquare className="size-3.5 shrink-0" />}
                 <span className="flex-1 truncate">
                   {el.bind_to
                     ? `{${el.bind_to}}`

@@ -60,3 +60,28 @@ export function createShapeElement(
     ...overrides,
   };
 }
+
+export function createEllipseElement(
+  overrides?: Partial<ShapeElement>
+): ShapeElement {
+  return createShapeElement({
+    width: 150,
+    height: 150,
+    shape_type: "ellipse",
+    border_radius: undefined,
+    ...overrides,
+  });
+}
+
+export function createLineElement(
+  overrides?: Partial<ShapeElement>
+): ShapeElement {
+  return createShapeElement({
+    width: 200,
+    height: 4,
+    shape_type: "line",
+    fill: undefined,
+    border_radius: undefined,
+    ...overrides,
+  });
+}

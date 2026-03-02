@@ -56,6 +56,10 @@ interface LayoutEditorState {
   // Clipboard (internal, not persisted)
   clipboard: CanvasElement[];
 
+  // Inline editing (rich text)
+  editingElementId: string | null;
+  setEditingElement: (id: string | null) => void;
+
   // Zoom & pan
   zoom: number;
   panX: number;
@@ -151,6 +155,8 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
   previewCardIndex: -1,
   isSaving: false,
   clipboard: [],
+  editingElementId: null,
+  setEditingElement: (id) => set({ editingElementId: id }),
   zoom: 0.5,
   panX: 0,
   panY: 0,
@@ -269,16 +275,16 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
       }
       set({ selectedElementIds: next });
     } else {
-      set({ selectedElementIds: new Set([id]) });
+      set({ selectedElementIds: new Set([id]), editingElementId: null });
     }
   },
 
   selectElements: (ids) => {
-    set({ selectedElementIds: new Set(ids) });
+    set({ selectedElementIds: new Set(ids), editingElementId: null });
   },
 
   clearSelection: () => {
-    set({ selectedElementIds: new Set() });
+    set({ selectedElementIds: new Set(), editingElementId: null });
   },
 
   addElement: (element) => {

@@ -6,6 +6,24 @@ export interface BoxShadow {
   spread: number;
 }
 
+export interface TextShadow {
+  color: string;
+  offset_x: number;
+  offset_y: number;
+  blur: number;
+}
+
+export interface GradientStop {
+  color: string;
+  position: number; // 0–100
+}
+
+export interface Gradient {
+  type: "linear" | "radial";
+  angle?: number; // degrees, for linear
+  stops: GradientStop[];
+}
+
 export interface BaseElement {
   id: string;
   type: "text" | "image" | "shape";
@@ -32,6 +50,11 @@ export interface TextElement extends BaseElement {
   vertical_align: "top" | "middle" | "bottom";
   color: string;
   overflow: "wrap" | "truncate" | "visible";
+  font_family?: string;
+  line_height?: number;
+  letter_spacing?: number;
+  text_shadow?: TextShadow;
+  rich_text?: object; // TipTap JSON
 }
 
 export interface ImageElement extends BaseElement {
@@ -43,7 +66,10 @@ export interface ImageElement extends BaseElement {
 
 export interface ShapeElement extends BaseElement {
   type: "shape";
+  shape_type?: "rectangle" | "ellipse" | "line";
   fill?: string;
+  fill_type?: "solid" | "linear" | "radial";
+  gradient?: Gradient;
   stroke?: string;
   stroke_width?: number;
   border_radius?: number;
