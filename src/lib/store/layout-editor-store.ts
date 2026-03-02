@@ -60,6 +60,10 @@ interface LayoutEditorState {
   editingElementId: string | null;
   setEditingElement: (id: string | null) => void;
 
+  // Snap guides (transient, not persisted)
+  activeSnapGuides: { axis: "x" | "y"; position: number }[];
+  setActiveSnapGuides: (guides: { axis: "x" | "y"; position: number }[]) => void;
+
   // Zoom & pan
   zoom: number;
   panX: number;
@@ -157,6 +161,8 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
   clipboard: [],
   editingElementId: null,
   setEditingElement: (id) => set({ editingElementId: id }),
+  activeSnapGuides: [],
+  setActiveSnapGuides: (guides) => set({ activeSnapGuides: guides }),
   zoom: 0.5,
   panX: 0,
   panY: 0,

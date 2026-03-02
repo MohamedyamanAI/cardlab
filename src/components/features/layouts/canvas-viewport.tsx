@@ -5,6 +5,7 @@ import { useLayoutEditorStore } from "@/lib/store/layout-editor-store";
 import { useCardsStore } from "@/lib/store/cards-store";
 import { CanvasElementWrapper } from "./canvas-element";
 import { MarqueeOverlay } from "./marquee-overlay";
+import { SnapGuideOverlay } from "./snap-guide-overlay";
 import { ZoomControls } from "./zoom-controls";
 import { Rulers } from "./rulers";
 
@@ -219,6 +220,12 @@ export function CanvasViewport() {
               properties={properties}
             />
           ))}
+
+          {/* Snap guide overlay */}
+          <SnapGuideOverlay
+            canvasWidth={canvasWidth}
+            canvasHeight={canvasHeight}
+          />
 
           {/* Marquee selection overlay */}
           {!isSpaceHeld && (

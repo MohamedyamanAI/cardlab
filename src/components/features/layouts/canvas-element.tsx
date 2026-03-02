@@ -10,6 +10,7 @@ import { TextRenderer } from "./element-renderers/text-renderer";
 import { ImageRenderer } from "./element-renderers/image-renderer";
 import { ShapeRenderer } from "./element-renderers/shape-renderer";
 import { InlineRichTextEditor } from "./inline-rich-text-editor";
+import { computeSnap } from "@/lib/utils/snap-engine";
 import { cn } from "@/lib/utils/utils";
 
 interface CanvasElementProps {
@@ -38,6 +39,10 @@ export function CanvasElementWrapper({
   const updateElement = useLayoutEditorStore((s) => s.updateElement);
   const editingElementId = useLayoutEditorStore((s) => s.editingElementId);
   const setEditingElement = useLayoutEditorStore((s) => s.setEditingElement);
+  const elements = useLayoutEditorStore((s) => s.elements);
+  const setActiveSnapGuides = useLayoutEditorStore((s) => s.setActiveSnapGuides);
+  const layouts = useLayoutEditorStore((s) => s.layouts);
+  const currentLayoutId = useLayoutEditorStore((s) => s.currentLayoutId);
 
   const isSelected = selectedElementIds.has(element.id);
   const multiSelected = selectedElementIds.size > 1;
@@ -46,6 +51,11 @@ export function CanvasElementWrapper({
   const isEditing = editingElementId === element.id;
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
   const rotateStartRef = useRef<{ startAngle: number; startRotation: number } | null>(null);
+  const snappedPosRef = useRef<{ x: number; y: number } | null>(null);
+
+  const layout = layouts.find((l) => l.id === currentLayoutId);
+  const canvasWidth = layout?.width ?? 825;
+  const canvasHeight = layout?.height ?? 1125;
 
   // Resolve preview value if we have a card and a binding
   let previewValue: string | null = null;
@@ -125,28 +135,71 @@ export function CanvasElementWrapper({
           selectElement(element.id, me.shiftKey);
         }
         dragStartRef.current = { x: element.x, y: element.y };
+        snappedPosRef.current = null;
       }}
-      onDragStop={(_e, d) => {
+      onDrag={(_e, d) => {
         if (isLocked) return;
-        if (isSelected && multiSelected && dragStartRef.current) {
-          const dx = d.x - dragStartRef.current.x;
-          const dy = d.y - dragStartRef.current.y;
+        // Compute snap against other elements
+        const otherBounds = elements
+          .filter((el) => el.id !== element.id && !el.hidden && !selectedElementIds.has(el.id))
+          .map((el) => ({ x: el.x, y: el.y, width: el.width, height: el.height }));
+        const snap = computeSnap(
+          { x: d.x, y: d.y, width: element.width, height: element.height },
+          otherBounds,
+          canvasWidth,
+          canvasHeight
+        );
+        snappedPosRef.current = { x: snap.snappedX, y: snap.snappedY };
+        setActiveSnapGuides(snap.guides);
+      }}
+      onDragStop={() => {
+        if (isLocked) return;
+        const finalPos = snappedPosRef.current;
+        if (isSelected && multiSelected && dragStartRef.current && finalPos) {
+          const dx = finalPos.x - dragStartRef.current.x;
+          const dy = finalPos.y - dragStartRef.current.y;
           if (dx !== 0 || dy !== 0) {
             moveSelectedElements(dx, dy);
           }
-        } else {
-          moveElement(element.id, d.x, d.y);
+        } else if (finalPos) {
+          moveElement(element.id, finalPos.x, finalPos.y);
         }
         dragStartRef.current = null;
+        snappedPosRef.current = null;
+        setActiveSnapGuides([]);
+      }}
+      onResize={(_e, _dir, ref, _delta, pos) => {
+        if (isLocked) return;
+        const newW = parseInt(ref.style.width, 10);
+        const newH = parseInt(ref.style.height, 10);
+        const otherBounds = elements
+          .filter((el) => el.id !== element.id && !el.hidden)
+          .map((el) => ({ x: el.x, y: el.y, width: el.width, height: el.height }));
+        const snap = computeSnap(
+          { x: pos.x, y: pos.y, width: newW, height: newH },
+          otherBounds,
+          canvasWidth,
+          canvasHeight
+        );
+        setActiveSnapGuides(snap.guides);
       }}
       onResizeStop={(_e, _dir, ref, _delta, pos) => {
         if (isLocked) return;
-        resizeElement(
-          element.id,
-          parseInt(ref.style.width, 10),
-          parseInt(ref.style.height, 10)
+        const newW = parseInt(ref.style.width, 10);
+        const newH = parseInt(ref.style.height, 10);
+        // Snap the final position
+        const otherBounds = elements
+          .filter((el) => el.id !== element.id && !el.hidden)
+          .map((el) => ({ x: el.x, y: el.y, width: el.width, height: el.height }));
+        const snap = computeSnap(
+          { x: pos.x, y: pos.y, width: newW, height: newH },
+          otherBounds,
+          canvasWidth,
+          canvasHeight
         );
-        updateElement(element.id, { x: pos.x, y: pos.y });
+        resizeElement(element.id, newW, newH);
+        updateElement(element.id, { x: snap.snappedX, y: snap.snappedY });
+        setActiveSnapGuides([]);
       }}
       onMouseDown={(e: MouseEvent) => {
         e.stopPropagation();
