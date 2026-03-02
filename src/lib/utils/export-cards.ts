@@ -1,10 +1,14 @@
-import { toPng } from "html-to-image";
+import { toPng, toSvg } from "html-to-image";
 import { jsPDF } from "jspdf";
 import type { Card, Layout } from "@/lib/types";
 import type { CanvasElement } from "@/lib/types/canvas-elements";
 import type { Json } from "@/lib/supabase/database.types";
 import { resolveLayoutForCard } from "@/lib/utils/condition-engine";
-import type { ResolvedCard, PdfExportConfig } from "@/lib/types/export";
+import type {
+  ResolvedCard,
+  PdfExportConfig,
+  SpritesheetConfig,
+} from "@/lib/types/export";
 import { PAGE_DIMENSIONS } from "@/lib/types/export";
 
 export function resolveCards(
@@ -106,6 +110,111 @@ export function downloadPng(dataUrl: string, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
+// ─── SVG Export ──────────────────────────────────────────────────────────────
+
+export async function renderCardToSvg(
+  node: HTMLElement,
+  width: number,
+  height: number
+): Promise<string> {
+  return toSvg(node, {
+    width,
+    height,
+    cacheBust: true,
+    filter: (el) => {
+      if (el instanceof HTMLElement && el.dataset.exportIgnore === "true") {
+        return false;
+      }
+      return true;
+    },
+  });
+}
+
+export function downloadSvg(svgDataUrl: string, filename: string): void {
+  // toSvg returns a data URL; decode to raw SVG string
+  const svgString = decodeURIComponent(
+    svgDataUrl.replace("data:image/svg+xml;charset=utf-8,", "")
+  );
+  const blob = new Blob([svgString], { type: "image/svg+xml" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+// ─── Spritesheet Export ──────────────────────────────────────────────────────
+
+function loadImage(dataUrl: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+}
+
+export async function generateSpritesheet(
+  cardImages: { dataUrl: string; width: number; height: number }[],
+  config: SpritesheetConfig,
+  projectName: string
+): Promise<void> {
+  if (cardImages.length === 0) return;
+
+  const { cols, reserveSlots } = config;
+  const maxPerSheet = reserveSlots > 0 ? cols * 7 - reserveSlots : Infinity;
+  const cardW = cardImages[0].width;
+  const cardH = cardImages[0].height;
+
+  // Split into sheets if needed
+  const sheets: { dataUrl: string; width: number; height: number }[][] = [];
+  for (let i = 0; i < cardImages.length; i += maxPerSheet) {
+    sheets.push(cardImages.slice(i, i + maxPerSheet));
+  }
+
+  for (let s = 0; s < sheets.length; s++) {
+    const sheet = sheets[s];
+    const totalSlots = reserveSlots > 0 ? sheet.length + reserveSlots : sheet.length;
+    const rows = Math.ceil(totalSlots / cols);
+    const canvasW = cols * cardW;
+    const canvasH = rows * cardH;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = canvasW;
+    canvas.height = canvasH;
+    const ctx = canvas.getContext("2d")!;
+
+    // Fill with black background
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, canvasW, canvasH);
+
+    for (let i = 0; i < sheet.length; i++) {
+      const img = await loadImage(sheet[i].dataUrl);
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      ctx.drawImage(img, col * cardW, row * cardH, cardW, cardH);
+    }
+
+    const blob = await new Promise<Blob>((resolve) =>
+      canvas.toBlob((b) => resolve(b!), "image/png")
+    );
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    const suffix = sheets.length > 1 ? `-${s + 1}` : "";
+    link.download = `${projectName}-spritesheet${suffix}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+}
+
+// ─── PDF Export ──────────────────────────────────────────────────────────────
+
 export function computePdfLayout(
   config: PdfExportConfig,
   cardAspectRatio: number,
@@ -115,18 +224,32 @@ export function computePdfLayout(
   const printableWidth = pageDim.width - config.pageMargin * 2;
   const printableHeight = pageDim.height - config.pageMargin * 2;
 
+  // One-per-page mode: single card centered on page
+  if (config.layoutMode === "one-per-page") {
+    const cardW = nativeCardWidth ?? printableWidth;
+    const cardH = cardW * cardAspectRatio;
+    return {
+      pageDim,
+      cardW,
+      cardH,
+      cardsPerRow: 1,
+      cardsPerCol: 1,
+      cardsPerPage: 1,
+      printableWidth,
+      printableHeight,
+    };
+  }
+
   let cardW: number;
   let effectiveCardsPerRow: number;
 
   if (config.maintainCardSize && nativeCardWidth) {
-    // Use the native card pixel size, auto-calculate how many fit per row
     cardW = nativeCardWidth;
     effectiveCardsPerRow = Math.max(
       1,
       Math.floor((printableWidth + config.cardGap) / (cardW + config.cardGap))
     );
   } else {
-    // Scale cards to fill N per row
     effectiveCardsPerRow = config.cardsPerRow;
     cardW =
       (printableWidth - config.cardGap * (effectiveCardsPerRow - 1)) /
@@ -152,15 +275,83 @@ export function computePdfLayout(
   };
 }
 
+function drawCropMarks(
+  pdf: jsPDF,
+  x: number,
+  y: number,
+  cardW: number,
+  cardH: number,
+  bleedMargin: number
+): void {
+  const markLen = 20;
+  const trimX = x + bleedMargin;
+  const trimY = y + bleedMargin;
+  const trimW = cardW - 2 * bleedMargin;
+  const trimH = cardH - 2 * bleedMargin;
+
+  pdf.setDrawColor(0, 0, 0);
+  pdf.setLineWidth(0.5);
+
+  // Top-left corner
+  pdf.line(trimX - markLen, trimY, trimX, trimY);
+  pdf.line(trimX, trimY - markLen, trimX, trimY);
+
+  // Top-right corner
+  pdf.line(trimX + trimW, trimY, trimX + trimW + markLen, trimY);
+  pdf.line(trimX + trimW, trimY - markLen, trimX + trimW, trimY);
+
+  // Bottom-left corner
+  pdf.line(trimX - markLen, trimY + trimH, trimX, trimY + trimH);
+  pdf.line(trimX, trimY + trimH, trimX, trimY + trimH + markLen);
+
+  // Bottom-right corner
+  pdf.line(trimX + trimW, trimY + trimH, trimX + trimW + markLen, trimY + trimH);
+  pdf.line(trimX + trimW, trimY + trimH, trimX + trimW, trimY + trimH + markLen);
+}
+
+function renderPdfPage(
+  pdf: jsPDF,
+  images: { dataUrl: string; width: number; height: number }[],
+  config: PdfExportConfig,
+  layout: ReturnType<typeof computePdfLayout>
+): void {
+  const { pageDim, cardW, cardH, cardsPerRow } = layout;
+
+  for (let i = 0; i < images.length; i++) {
+    let x: number;
+    let y: number;
+
+    if (config.layoutMode === "one-per-page") {
+      // Center on page
+      x = (pageDim.width - cardW) / 2;
+      y = (pageDim.height - cardH) / 2;
+    } else {
+      const col = i % cardsPerRow;
+      const row = Math.floor(i / cardsPerRow);
+      x = config.pageMargin + col * (cardW + config.cardGap);
+      y = config.pageMargin + row * (cardH + config.cardGap);
+    }
+
+    pdf.addImage(images[i].dataUrl, "PNG", x, y, cardW, cardH);
+
+    if (config.cropMarks && config.bleedMargin > 0) {
+      // Scale bleed margin to match the rendered card scale
+      const scale = cardW / images[i].width;
+      drawCropMarks(pdf, x, y, cardW, cardH, config.bleedMargin * scale);
+    }
+  }
+}
+
 export function generatePdf(
   cardImages: { dataUrl: string; width: number; height: number }[],
   config: PdfExportConfig,
-  projectName: string
+  projectName: string,
+  backImages?: { dataUrl: string; width: number; height: number }[]
 ): void {
   const firstCard = cardImages[0];
   const aspectRatio = firstCard.height / firstCard.width;
   const layout = computePdfLayout(config, aspectRatio, firstCard.width);
-  const { pageDim, cardW, cardH, cardsPerPage, cardsPerRow } = layout;
+  const { pageDim, cardsPerPage } = layout;
 
   const pdf = new jsPDF({
     orientation: "portrait",
@@ -169,22 +360,26 @@ export function generatePdf(
     hotfixes: ["px_scaling"],
   });
 
-  let pageIndex = 0;
-  for (let i = 0; i < cardImages.length; i++) {
-    const posOnPage = i - pageIndex * cardsPerPage;
+  const totalPages = Math.ceil(cardImages.length / cardsPerPage);
+  let isFirstPage = true;
 
-    if (posOnPage >= cardsPerPage && i > 0) {
+  for (let p = 0; p < totalPages; p++) {
+    const start = p * cardsPerPage;
+    const pageCards = cardImages.slice(start, start + cardsPerPage);
+
+    // Front page
+    if (!isFirstPage) {
       pdf.addPage([pageDim.width, pageDim.height]);
-      pageIndex++;
     }
+    isFirstPage = false;
+    renderPdfPage(pdf, pageCards, config, layout);
 
-    const actualPos = i - pageIndex * cardsPerPage;
-    const col = actualPos % cardsPerRow;
-    const row = Math.floor(actualPos / cardsPerRow);
-    const x = config.pageMargin + col * (cardW + config.cardGap);
-    const y = config.pageMargin + row * (cardH + config.cardGap);
-
-    pdf.addImage(cardImages[i].dataUrl, "PNG", x, y, cardW, cardH);
+    // Back page (if back images provided)
+    if (backImages && backImages.length > 0) {
+      pdf.addPage([pageDim.width, pageDim.height]);
+      const pageBackCards = backImages.slice(start, start + cardsPerPage);
+      renderPdfPage(pdf, pageBackCards, config, layout);
+    }
   }
 
   pdf.save(`${projectName}-cards.pdf`);

@@ -18,7 +18,7 @@ interface CardsState {
   cards: Card[];
   decks: Deck[];
   selectedDeckId: string | null;
-  deckCardIds: Set<string> | null; // null = no deck filter
+  deckCardQuantities: Map<string, number> | null; // null = no deck filter
 
   // UI State
   isLoading: boolean;
@@ -99,7 +99,7 @@ export const useCardsStore = create<CardsState>((set, get) => ({
   cards: [],
   decks: [],
   selectedDeckId: null,
-  deckCardIds: null,
+  deckCardQuantities: null,
   isLoading: false,
   isInitialized: false,
   selectedCardIds: new Set(),
@@ -135,7 +135,7 @@ export const useCardsStore = create<CardsState>((set, get) => ({
       selectedCardIds: new Set(),
       editingCell: null,
       selectedDeckId: null,
-      deckCardIds: null,
+      deckCardQuantities: null,
     });
 
     const [propsResult, cardsResult, decksResult] = await Promise.all([
@@ -184,23 +184,27 @@ export const useCardsStore = create<CardsState>((set, get) => ({
 
   selectDeck: async (deckId) => {
     if (!deckId) {
-      set({ selectedDeckId: null, deckCardIds: null });
+      set({ selectedDeckId: null, deckCardQuantities: null });
       return;
     }
     set({ selectedDeckId: deckId });
-    const result = await deckActions.getDeckCardIds(deckId);
+    const result = await deckActions.getDeckCardQuantities(deckId);
     if (result.success) {
-      set({ deckCardIds: new Set(result.data) });
+      const map = new Map<string, number>();
+      for (const { card_id, quantity } of result.data) {
+        map.set(card_id, quantity);
+      }
+      set({ deckCardQuantities: map });
     } else {
       toast.error(result.error);
-      set({ selectedDeckId: null, deckCardIds: null });
+      set({ selectedDeckId: null, deckCardQuantities: null });
     }
   },
 
   filteredCards: () => {
-    const { cards, deckCardIds } = get();
-    if (!deckCardIds) return cards;
-    return cards.filter((c) => deckCardIds.has(c.id));
+    const { cards, deckCardQuantities } = get();
+    if (!deckCardQuantities) return cards;
+    return cards.filter((c) => deckCardQuantities.has(c.id));
   },
 
   // Property actions

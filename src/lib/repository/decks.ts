@@ -42,3 +42,19 @@ export async function getDeckCardIds(
   if (error) throw error;
   return (data ?? []).map((row) => row.card_id);
 }
+
+export async function getDeckCardQuantities(
+  supabase: SupabaseClient,
+  deckId: string
+): Promise<{ card_id: string; quantity: number }[]> {
+  const { data, error } = await supabase
+    .from("deck_cards")
+    .select("card_id, quantity")
+    .eq("deck_id", deckId);
+
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    card_id: row.card_id,
+    quantity: row.quantity ?? 1,
+  }));
+}

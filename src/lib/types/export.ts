@@ -6,7 +6,12 @@ export type ExportScope = "all" | "selected" | "filtered";
 
 export type DataExportFormat = "csv" | "json";
 
-export type CardExportFormat = "png" | "pdf";
+export type CardExportFormat =
+  | "png"
+  | "pdf"
+  | "svg"
+  | "spritesheet-tts"
+  | "spritesheet-roll20";
 
 export type PageSize = "a4" | "a3" | "letter" | "legal" | "tabloid";
 
@@ -21,12 +26,23 @@ export const PAGE_DIMENSIONS: Record<
   tabloid: { width: 3300, height: 5100, label: "Tabloid (11 × 17 in)" },
 };
 
+export type PdfLayoutMode = "grid" | "one-per-page";
+
 export interface PdfExportConfig {
   pageSize: PageSize;
   cardsPerRow: number;
   cardGap: number;
   pageMargin: number;
   maintainCardSize: boolean;
+  layoutMode: PdfLayoutMode;
+  cropMarks: boolean;
+  bleedMargin: number;
+  backLayoutId: string | null;
+}
+
+export interface SpritesheetConfig {
+  cols: number;
+  reserveSlots: number; // TTS: 2 (last slots unused), Roll20: 0
 }
 
 export interface ExportProgress {

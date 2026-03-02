@@ -63,3 +63,20 @@ export async function getDeckCardIds(
     return { success: false, error: "Failed to fetch deck cards" };
   }
 }
+
+export async function getDeckCardQuantities(
+  deckId: string
+): Promise<ActionResult<{ card_id: string; quantity: number }[]>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Unauthorized" };
+
+  try {
+    const quantities = await decksRepo.getDeckCardQuantities(supabase, deckId);
+    return { success: true, data: quantities };
+  } catch {
+    return { success: false, error: "Failed to fetch deck card quantities" };
+  }
+}
