@@ -51,12 +51,13 @@ import { PdfPreview } from "./previews/pdf-preview";
 interface ExportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialScope?: ExportScope;
 }
 
-export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
+export function ExportDialog({ open, onOpenChange, initialScope }: ExportDialogProps) {
   // Config state
   const [format, setFormat] = useState<CardExportFormat>("png");
-  const [scope, setScope] = useState<ExportScope>("all");
+  const [scope, setScope] = useState<ExportScope>(initialScope ?? "all");
   const [pageSize, setPageSize] = useState<PageSize>("a4");
   const [cardsPerRow, setCardsPerRow] = useState(3);
   const [maintainCardSize, setMaintainCardSize] = useState(true);
@@ -66,6 +67,13 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
   const [spritesheetCols, setSpritesheetCols] = useState(10);
   const [noSpacing, setNoSpacing] = useState(false);
   const [includeQuantities, setIncludeQuantities] = useState(true);
+
+  // Sync scope when dialog opens with a different initialScope
+  useEffect(() => {
+    if (open && initialScope) {
+      setScope(initialScope);
+    }
+  }, [open, initialScope]);
 
   // Progress state
   const [progress, setProgress] = useState<ExportProgress>({

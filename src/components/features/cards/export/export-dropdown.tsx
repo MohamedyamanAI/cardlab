@@ -34,41 +34,30 @@ export function ExportDropdown() {
   const project = projects.find((p) => p.id === selectedProjectId);
   const projectName = project?.name ?? "cards";
 
-  function getExportCards() {
-    if (selectedCardIds.size > 0) {
-      return cards.filter((c) => selectedCardIds.has(c.id));
-    }
-    if (selectedDeckId) {
-      return filteredCards();
-    }
-    return cards;
-  }
+  const [exportScope, setExportScope] = useState<"all" | "selected">("all");
 
-  function getScopeLabel() {
-    if (selectedCardIds.size > 0) return `${selectedCardIds.size} selected`;
-    if (selectedDeckId) return "current deck";
-    return "all cards";
-  }
-
-  const handleCSV = () => {
-    const exportCards = getExportCards();
+  const handleExportData = (format: "csv" | "json", scope: "all" | "selected") => {
+    const exportCards = scope === "selected"
+      ? cards.filter((c) => selectedCardIds.has(c.id))
+      : selectedDeckId ? filteredCards() : cards;
     if (exportCards.length === 0) {
       toast.error("No cards to export");
       return;
     }
-    exportCSV(exportCards, properties, projectName);
-    toast.success(`Exported ${exportCards.length} cards as CSV`);
+    if (format === "csv") {
+      exportCSV(exportCards, properties, projectName);
+    } else {
+      exportJSON(exportCards, properties, projectName);
+    }
+    toast.success(`Exported ${exportCards.length} cards as ${format.toUpperCase()}`);
   };
 
-  const handleJSON = () => {
-    const exportCards = getExportCards();
-    if (exportCards.length === 0) {
-      toast.error("No cards to export");
-      return;
-    }
-    exportJSON(exportCards, properties, projectName);
-    toast.success(`Exported ${exportCards.length} cards as JSON`);
+  const handleVisualExport = (scope: "all" | "selected") => {
+    setExportScope(scope);
+    setDialogOpen(true);
   };
+
+  const hasSelection = selectedCardIds.size > 0;
 
   return (
     <>
@@ -80,23 +69,44 @@ export function ExportDropdown() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-          <DropdownMenuLabel>
-            Data Export ({getScopeLabel()})
-          </DropdownMenuLabel>
-          <DropdownMenuItem onClick={handleCSV}>
-            Export as CSV
+          <DropdownMenuLabel>Data Export</DropdownMenuLabel>
+          <DropdownMenuItem onClick={() => handleExportData("csv", "all")}>
+            Export all as CSV
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleJSON}>
-            Export as JSON
+          <DropdownMenuItem onClick={() => handleExportData("json", "all")}>
+            Export all as JSON
           </DropdownMenuItem>
+          {hasSelection && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>
+                Selected ({selectedCardIds.size})
+              </DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => handleExportData("csv", "selected")}>
+                Export selected as CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExportData("json", "selected")}>
+                Export selected as JSON
+              </DropdownMenuItem>
+            </>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuLabel>Card Export</DropdownMenuLabel>
-          <DropdownMenuItem onClick={() => setDialogOpen(true)}>
+          <DropdownMenuItem onClick={() => handleVisualExport("all")}>
             Export as Images / PDF…
           </DropdownMenuItem>
+          {hasSelection && (
+            <DropdownMenuItem onClick={() => handleVisualExport("selected")}>
+              Export selected as Images / PDF…
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
-      <ExportDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <ExportDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        initialScope={exportScope === "selected" ? "selected" : undefined}
+      />
     </>
   );
 }
