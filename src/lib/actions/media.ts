@@ -156,6 +156,70 @@ export async function deleteMedia(
   }
 }
 
+export async function resolveMediaIds(
+  mediaIds: string[]
+): Promise<
+  ActionResult<
+    Record<string, { signedUrl: string; storagePath: string; originalName: string }>
+  >
+> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Unauthorized" };
+
+  if (mediaIds.length === 0) {
+    return { success: true, data: {} };
+  }
+
+  try {
+    const { data: mediaRows, error: fetchError } = await supabase
+      .from("media")
+      .select("id, storage_path, original_name")
+      .in("id", mediaIds)
+      .eq("user_id", user.id);
+
+    if (fetchError) throw fetchError;
+    if (!mediaRows || mediaRows.length === 0) {
+      return { success: true, data: {} };
+    }
+
+    const paths = mediaRows.map((r) => r.storage_path);
+    const { data: signedData, error: signError } = await supabase.storage
+      .from("media")
+      .createSignedUrls(paths, 3600);
+
+    if (signError) throw signError;
+
+    const pathToUrl: Record<string, string> = {};
+    for (const item of signedData ?? []) {
+      if (item.signedUrl && item.path) {
+        pathToUrl[item.path] = item.signedUrl;
+      }
+    }
+
+    const result: Record<
+      string,
+      { signedUrl: string; storagePath: string; originalName: string }
+    > = {};
+    for (const row of mediaRows) {
+      const url = pathToUrl[row.storage_path];
+      if (url) {
+        result[row.id] = {
+          signedUrl: url,
+          storagePath: row.storage_path,
+          originalName: row.original_name ?? "image",
+        };
+      }
+    }
+
+    return { success: true, data: result };
+  } catch {
+    return { success: false, error: "Failed to resolve media" };
+  }
+}
+
 export async function getSignedUrl(
   storagePath: string
 ): Promise<ActionResult<string>> {

@@ -230,8 +230,7 @@ export function CardsGrid() {
             if (
               prop &&
               (prop.type === "text" ||
-                prop.type === "number" ||
-                prop.type === "image")
+                prop.type === "number")
             ) {
               editAt(row, col, e.key);
             }

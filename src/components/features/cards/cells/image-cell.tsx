@@ -1,96 +1,118 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { IconPhoto } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
+import { IconPhoto, IconX } from "@tabler/icons-react";
+import { useMediaCacheStore } from "@/lib/store/media-cache-store";
+import { MediaPickerDialog } from "../media-picker-dialog";
+
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 interface ImageCellProps {
   value: unknown;
   isEditing: boolean;
-  initialKey?: string;
   onStartEdit: () => void;
-  onCommit: (value: string, moveDown?: boolean) => void;
+  onCommit: (value: string | null) => void;
   onCancel: () => void;
 }
 
 export function ImageCell({
   value,
   isEditing,
-  initialKey,
   onStartEdit,
   onCommit,
   onCancel,
 }: ImageCellProps) {
-  const [draft, setDraft] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
-  const url = typeof value === "string" ? value : "";
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const rawValue = typeof value === "string" ? value : "";
+  const isMediaId = UUID_REGEX.test(rawValue);
+  const isLegacyUrl = rawValue.startsWith("http");
 
+  const signedUrl = useMediaCacheStore((s) =>
+    isMediaId ? s.getSignedUrl(rawValue) : undefined
+  );
+  const entry = useMediaCacheStore((s) =>
+    isMediaId ? s.getEntry(rawValue) : undefined
+  );
+  const isPending = useMediaCacheStore((s) =>
+    isMediaId && !signedUrl ? s.pending.has(rawValue) : false
+  );
+
+  const displayUrl = isMediaId ? signedUrl : isLegacyUrl ? rawValue : undefined;
+  const displayName = isMediaId
+    ? entry?.originalName ?? "Image"
+    : isLegacyUrl
+      ? rawValue
+      : undefined;
+
+  // Open picker when entering edit mode
   useEffect(() => {
-    if (isEditing) {
-      setDraft(initialKey ?? String(value ?? ""));
-      setTimeout(() => {
-        const input = inputRef.current;
-        if (input) {
-          input.focus();
-          if (initialKey) {
-            input.setSelectionRange(input.value.length, input.value.length);
-          } else {
-            input.select();
-          }
-        }
-      }, 0);
+    if (isEditing && !pickerOpen) {
+      setPickerOpen(true);
     }
-  }, [isEditing, value, initialKey]);
+  }, [isEditing]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!isEditing) {
-    return (
+  const handleSelect = (mediaId: string | null) => {
+    onCommit(mediaId);
+    setPickerOpen(false);
+  };
+
+  const handlePickerClose = (open: boolean) => {
+    if (!open) {
+      setPickerOpen(false);
+      onCancel();
+    }
+  };
+
+  return (
+    <>
       <div
-        className="flex min-h-[28px] w-full cursor-text items-center gap-1.5 px-2 py-0.5"
+        className="group flex min-h-[28px] w-full cursor-pointer items-center gap-1.5 px-2 py-0.5"
         onDoubleClick={onStartEdit}
       >
-        {url ? (
+        {displayUrl ? (
           <>
             <img
-              src={url}
+              src={displayUrl}
               alt=""
               className="size-5 shrink-0 rounded object-cover"
             />
-            <span className="truncate text-xs text-muted-foreground">
-              {url}
+            <span className="flex-1 truncate text-xs text-muted-foreground">
+              {displayName}
             </span>
+            <button
+              type="button"
+              className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                onCommit(null);
+              }}
+            >
+              <IconX
+                size={12}
+                className="text-muted-foreground hover:text-foreground"
+              />
+            </button>
           </>
+        ) : isMediaId && (isPending || !signedUrl) ? (
+          <div className="flex items-center gap-1.5">
+            <div className="size-5 animate-pulse rounded bg-muted" />
+            <span className="text-xs text-muted-foreground">Loading...</span>
+          </div>
         ) : (
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <IconPhoto size={14} />
-            Add image URL
+            Add image
           </span>
         )}
       </div>
-    );
-  }
 
-  return (
-    <input
-      ref={inputRef}
-      type="url"
-      value={draft}
-      placeholder="https://..."
-      onChange={(e) => setDraft(e.target.value)}
-      onBlur={() => onCommit(draft)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          onCommit(draft, true);
-        }
-        if (e.key === "Escape") {
-          e.preventDefault();
-          onCancel();
-        }
-        if (e.key === "Tab") {
-          return;
-        }
-        e.stopPropagation();
-      }}
-      className="h-[28px] w-full rounded-sm bg-background px-2 py-0.5 text-sm outline-none ring-2 ring-primary"
-    />
+      <MediaPickerDialog
+        open={pickerOpen}
+        onOpenChange={handlePickerClose}
+        onSelect={handleSelect}
+        currentMediaId={isMediaId ? rawValue : null}
+      />
+    </>
   );
 }

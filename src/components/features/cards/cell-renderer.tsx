@@ -84,7 +84,6 @@ export function CellRenderer({ card, property }: CellRendererProps) {
         <ImageCell
           value={value}
           isEditing={isEditing}
-          initialKey={initialKey}
           onStartEdit={handleStartEdit}
           onCommit={handleCommit}
           onCancel={handleCancel}
