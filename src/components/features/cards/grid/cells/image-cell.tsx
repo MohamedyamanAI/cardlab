@@ -1,9 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { IconPhoto, IconX } from "@tabler/icons-react";
+import { IconPhoto, IconX, IconReplace } from "@tabler/icons-react";
 import { useMediaCacheStore } from "@/lib/store/media-cache-store";
 import { MediaPickerDialog } from "../../preview/media-picker-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -24,6 +31,7 @@ export function ImageCell({
   onCancel,
 }: ImageCellProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const rawValue = typeof value === "string" ? value : "";
   const isMediaId = UUID_REGEX.test(rawValue);
   const isLegacyUrl = rawValue.startsWith("http");
@@ -64,6 +72,11 @@ export function ImageCell({
     }
   };
 
+  const handleThumbnailClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPreviewOpen(true);
+  };
+
   return (
     <>
       <div
@@ -76,10 +89,8 @@ export function ImageCell({
               src={displayUrl}
               alt=""
               className="size-5 shrink-0 rounded object-cover"
+              onClick={handleThumbnailClick}
             />
-            <span className="flex-1 truncate text-xs text-muted-foreground">
-              {displayName}
-            </span>
             <button
               type="button"
               className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
@@ -95,17 +106,60 @@ export function ImageCell({
             </button>
           </>
         ) : isMediaId && (isPending || !signedUrl) ? (
-          <div className="flex items-center gap-1.5">
-            <div className="size-5 animate-pulse rounded bg-muted" />
-            <span className="text-xs text-muted-foreground">Loading...</span>
-          </div>
+          <div className="size-5 animate-pulse rounded bg-muted" />
         ) : (
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <IconPhoto size={14} />
-            Add image
           </span>
         )}
       </div>
+
+      {/* Image preview dialog */}
+      {displayUrl && (
+        <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="truncate text-sm">
+                {displayName}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex justify-center rounded-lg bg-muted/30 p-4">
+              <img
+                src={displayUrl}
+                alt={displayName ?? ""}
+                className="max-h-[60vh] rounded object-contain"
+              />
+            </div>
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>{entry?.storagePath?.split("/").pop() ?? rawValue}</span>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setPreviewOpen(false);
+                    onStartEdit();
+                  }}
+                >
+                  <IconReplace size={14} className="mr-1.5" />
+                  Replace
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => {
+                    setPreviewOpen(false);
+                    onCommit(null);
+                  }}
+                >
+                  <IconX size={14} className="mr-1.5" />
+                  Remove
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       <MediaPickerDialog
         open={pickerOpen}
