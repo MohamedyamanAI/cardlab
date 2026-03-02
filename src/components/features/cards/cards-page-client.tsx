@@ -24,7 +24,7 @@ interface CardsPageClientProps {
 }
 
 export function CardsPageClient({ initialProjects }: CardsPageClientProps) {
-  const { hydrate, selectedProjectId, cards, properties, isLoading } =
+  const { hydrate, selectedProjectId, cards, filteredCards, properties, isLoading } =
     useCardsStore();
   const loadLayouts = useLayoutEditorStore((s) => s.loadLayouts);
   const layouts = useLayoutEditorStore((s) => s.layouts);
@@ -43,7 +43,8 @@ export function CardsPageClient({ initialProjects }: CardsPageClientProps) {
 
   useMediaResolution();
 
-  const hasContent = selectedProjectId && properties.length > 0 && cards.length > 0;
+  const visibleCards = filteredCards();
+  const hasContent = selectedProjectId && properties.length > 0 && visibleCards.length > 0;
   const canPreview = hasContent && layouts.length > 0;
 
   return (

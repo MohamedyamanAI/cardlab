@@ -4,11 +4,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useCardsStore } from "@/lib/store/cards-store";
 import { CreateProjectDialog } from "./create-project-dialog";
-import { IconCards, IconFolderPlus, IconPlus, IconFileImport } from "@tabler/icons-react";
+import { IconCards, IconFolderPlus, IconPlus, IconFileImport, IconStack2 } from "@tabler/icons-react";
 import { ImportDialog } from "./import/import-dialog";
 
 export function EmptyState() {
-  const { projects, selectedProjectId, cards, properties, addCard, isLoading } =
+  const { projects, selectedProjectId, cards, filteredCards, selectedDeckId, decks, properties, addCard, isLoading } =
     useCardsStore();
   const [createOpen, setCreateOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
@@ -84,6 +84,24 @@ export function EmptyState() {
           Import Cards
         </Button>
         <ImportDialog open={importOpen} onOpenChange={setImportOpen} />
+      </div>
+    );
+  }
+
+  // Deck selected but has no cards in it
+  if (selectedDeckId && cards.length > 0 && filteredCards().length === 0) {
+    const deckName = decks.find((d) => d.id === selectedDeckId)?.name ?? "This deck";
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <IconStack2
+          size={48}
+          className="text-muted-foreground/50"
+          stroke={1.5}
+        />
+        <h3 className="mt-4 text-lg font-medium">{deckName} is empty</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Add cards to this deck from the &ldquo;All cards&rdquo; view.
+        </p>
       </div>
     );
   }
