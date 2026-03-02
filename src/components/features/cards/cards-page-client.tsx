@@ -1,15 +1,22 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useCardsStore } from "@/lib/store/cards-store";
+import { useLayoutEditorStore } from "@/lib/store/layout-editor-store";
 import { useMediaResolution } from "@/hooks/use-media-resolution";
 import type { Project } from "@/lib/types";
 import { ProjectSelector } from "./project-selector";
 import { CardsToolbar } from "./cards-toolbar";
 import { CardsGrid } from "./cards-grid";
+import { CardLayoutPreview } from "./card-layout-preview";
 import { EmptyState } from "./empty-state";
 import { LayoutEditor } from "@/components/features/layouts/layout-editor";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from "@/components/ui/resizable";
 
 interface CardsPageClientProps {
   initialProjects: Project[];
@@ -18,14 +25,25 @@ interface CardsPageClientProps {
 export function CardsPageClient({ initialProjects }: CardsPageClientProps) {
   const { hydrate, selectedProjectId, cards, properties, isLoading } =
     useCardsStore();
+  const loadLayouts = useLayoutEditorStore((s) => s.loadLayouts);
+  const layouts = useLayoutEditorStore((s) => s.layouts);
+  const [previewOpen, setPreviewOpen] = useState(true);
 
   useEffect(() => {
     hydrate(initialProjects);
   }, [hydrate, initialProjects]);
 
+  // Load layouts for the selected project (needed for card preview in Data tab)
+  useEffect(() => {
+    if (selectedProjectId && layouts.length === 0) {
+      loadLayouts(selectedProjectId);
+    }
+  }, [selectedProjectId, loadLayouts, layouts.length]);
+
   useMediaResolution();
 
   const hasContent = selectedProjectId && properties.length > 0 && cards.length > 0;
+  const canPreview = hasContent && layouts.length > 0;
 
   return (
     <div className="flex h-full flex-col gap-4">
@@ -50,11 +68,34 @@ export function CardsPageClient({ initialProjects }: CardsPageClientProps) {
         <TabsContent value="data" className="flex flex-1 flex-col gap-4 overflow-hidden">
           {/* Toolbar - only show when project is selected */}
           {selectedProjectId && !isLoading && properties.length > 0 && (
-            <CardsToolbar />
+            <CardsToolbar
+              previewOpen={canPreview ? previewOpen : false}
+              onTogglePreview={canPreview ? () => setPreviewOpen((v) => !v) : undefined}
+            />
           )}
 
-          {/* Grid or Empty State */}
-          {hasContent ? <CardsGrid /> : <EmptyState />}
+          {/* Grid + optional card preview */}
+          {hasContent ? (
+            <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-border">
+              <ResizablePanelGroup orientation="horizontal">
+                <ResizablePanel defaultSize={previewOpen ? 65 : 100} minSize={30}>
+                  <CardsGrid />
+                </ResizablePanel>
+                {previewOpen && canPreview && (
+                  <>
+                    <ResizableHandle withHandle />
+                    <ResizablePanel defaultSize={35} minSize={20}>
+                      <div className="h-full bg-muted/30">
+                        <CardLayoutPreview />
+                      </div>
+                    </ResizablePanel>
+                  </>
+                )}
+              </ResizablePanelGroup>
+            </div>
+          ) : (
+            <EmptyState />
+          )}
         </TabsContent>
 
         <TabsContent value="layout" className="flex-1 overflow-hidden">

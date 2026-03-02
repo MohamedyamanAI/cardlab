@@ -283,7 +283,7 @@ export function CardsGrid() {
   return (
     <div
       ref={containerRef}
-      className="overflow-auto rounded-lg border border-border outline-none"
+      className="min-h-0 overflow-auto outline-none"
       tabIndex={0}
       onKeyDown={handleKeyDown}
     >

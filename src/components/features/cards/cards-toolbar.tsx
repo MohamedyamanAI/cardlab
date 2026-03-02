@@ -7,9 +7,15 @@ import {
   IconPlus,
   IconTrash,
   IconCopy,
+  IconLayoutSidebar,
 } from "@tabler/icons-react";
 
-export function CardsToolbar() {
+interface CardsToolbarProps {
+  previewOpen?: boolean;
+  onTogglePreview?: () => void;
+}
+
+export function CardsToolbar({ previewOpen, onTogglePreview }: CardsToolbarProps) {
   const {
     cards,
     selectedCardIds,
@@ -59,9 +65,21 @@ export function CardsToolbar() {
         </>
       )}
 
-      <div className="ml-auto text-xs text-muted-foreground">
-        {cards.length} card{cards.length !== 1 ? "s" : ""}
-        {selectionCount > 0 && ` \u00B7 ${selectionCount} selected`}
+      <div className="ml-auto flex items-center gap-2">
+        <span className="text-xs text-muted-foreground">
+          {cards.length} card{cards.length !== 1 ? "s" : ""}
+          {selectionCount > 0 && ` \u00B7 ${selectionCount} selected`}
+        </span>
+        {onTogglePreview && (
+          <Button
+            size="sm"
+            variant={previewOpen ? "secondary" : "outline"}
+            onClick={onTogglePreview}
+            title={previewOpen ? "Hide preview" : "Show preview"}
+          >
+            <IconLayoutSidebar size={14} />
+          </Button>
+        )}
       </div>
     </div>
   );
