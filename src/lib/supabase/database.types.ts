@@ -94,6 +94,54 @@ export type Database = {
           },
         ]
       }
+      documents: {
+        Row: {
+          content: Json
+          created_at: string | null
+          id: string
+          project_id: string | null
+          title: string
+          type: Database["public"]["Enums"]["doc_type_enum"] | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content?: Json
+          created_at?: string | null
+          id?: string
+          project_id?: string | null
+          title?: string
+          type?: Database["public"]["Enums"]["doc_type_enum"] | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string | null
+          id?: string
+          project_id?: string | null
+          title?: string
+          type?: Database["public"]["Enums"]["doc_type_enum"] | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cards: {
         Row: {
           created_at: string | null
@@ -405,6 +453,17 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      doc_type_enum:
+        | "theme"
+        | "lore"
+        | "rules"
+        | "card_types"
+        | "sets"
+        | "distribution"
+        | "art_style_guide"
+        | "keywords"
+        | "resource_system"
+        | "balance_rules"
       media_type_enum: "image" | "document" | "spreadsheet"
       message_role_enum: "user" | "assistant" | "tool"
       property_type_enum:
@@ -543,6 +602,18 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      doc_type_enum: [
+        "theme",
+        "lore",
+        "rules",
+        "card_types",
+        "sets",
+        "distribution",
+        "art_style_guide",
+        "keywords",
+        "resource_system",
+        "balance_rules",
+      ],
       media_type_enum: ["image", "document", "spreadsheet"],
       message_role_enum: ["user", "assistant", "tool"],
       property_type_enum: [

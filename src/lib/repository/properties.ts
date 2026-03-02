@@ -76,6 +76,65 @@ export async function createProperty(
   return data as Property;
 }
 
+export async function bulkCreateProperties(
+  supabase: SupabaseClient,
+  projectId: string,
+  inputs: Array<{
+    name: string;
+    type: PropertyType;
+    options?: string[];
+  }>
+): Promise<Property[]> {
+  if (inputs.length === 0) return [];
+
+  // Get existing slugs for collision detection
+  const { data: existing } = await supabase
+    .from("properties")
+    .select("slug")
+    .eq("project_id", projectId);
+
+  const existingSlugs = new Set((existing ?? []).map((p) => p.slug));
+
+  // Get the current max sort_order
+  const { data: lastProp } = await supabase
+    .from("properties")
+    .select("sort_order")
+    .eq("project_id", projectId)
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .single();
+
+  let sortOrder = lastProp ? (lastProp.sort_order ?? 0) + 1 : 0;
+
+  const inserts = inputs.map((input) => {
+    let slug = slugify(input.name);
+    if (existingSlugs.has(slug)) {
+      let counter = 1;
+      while (existingSlugs.has(`${slug}-${counter}`)) counter++;
+      slug = `${slug}-${counter}`;
+    }
+    existingSlugs.add(slug); // prevent collisions within batch
+
+    return {
+      project_id: projectId,
+      name: input.name,
+      slug,
+      type: input.type,
+      options: input.options ?? null,
+      is_required: false,
+      sort_order: sortOrder++,
+    };
+  });
+
+  const { data, error } = await supabase
+    .from("properties")
+    .insert(inserts)
+    .select();
+
+  if (error) throw error;
+  return data as Property[];
+}
+
 export async function updateProperty(
   supabase: SupabaseClient,
   propertyId: string,

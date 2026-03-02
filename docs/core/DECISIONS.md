@@ -1,0 +1,85 @@
+# Implementation Decisions & Gotchas
+
+Decisions made during development and issues discovered. Newest first.
+
+---
+
+## 2026-03-02: Google Provider Tools Cannot Mix
+
+**Context:** The ideator agent had both `google.tools.googleSearch()` and a custom `create_document` tool. The AI model would say the tool was "unavailable" — it was never sent to the API.
+
+**Discovery:** In `@ai-sdk/google`, when provider-defined tools exist, the tool serializer returns early after processing only provider tools, skipping all custom `functionDeclarations`.
+
+**Decision:** Exclude Google Search when custom tools are present. Trade-off: ideation loses web search when document tools are available.
+
+**Files:** `src/lib/intelligence/core/agent.ts`
+
+---
+
+## 2026-03-02: TipTap generateHTML Hydration Mismatch
+
+**Context:** `DocumentCard` used `generateHTML()` in a `useMemo` to create content previews. Server rendered empty string, client rendered `<p></p>`.
+
+**Decision:** Move `generateHTML()` into a `useEffect` so it only runs on the client. Both server and client start with empty string, preview fills in after mount.
+
+**Files:** `src/components/features/docs/document-card.tsx`
+
+---
+
+## 2026-03-02: Radix useId Hydration Mismatch
+
+**Context:** `DropdownMenu` triggers generated different Radix `id` attributes on server vs client.
+
+**Decision:** Wrap Radix-based interactive components in a `mounted` state guard (`useState(false)` + `useEffect(() => setMounted(true), [])`). These are interactive-only elements with no SSR/SEO value.
+
+**Files:** `src/components/features/docs/docs-client.tsx`
+
+---
+
+## 2026-03-02: CSS ring-1 Clips with overflow-hidden
+
+**Context:** Document cards used `ring-1 ring-foreground/10` for borders. Ring renders as `box-shadow`, which gets clipped by `overflow-hidden` on the card container, causing a visible outline on only one side.
+
+**Decision:** Use `border border-foreground/10` instead of `ring-1` when the element has `overflow-hidden`.
+
+**Files:** `src/components/features/docs/document-card.tsx`
+
+---
+
+## 2026-03-02: Vercel AI SDK v6 tool() uses inputSchema
+
+**Context:** The `tool()` helper in AI SDK v6 uses `inputSchema` (not `parameters`). Using `parameters` silently fails — the tool gets no schema and the model doesn't know what arguments to pass.
+
+**Decision:** Always use `inputSchema` with `tool()`. The helper is an identity function, so wrong property names just pass through silently.
+
+**Files:** `src/lib/intelligence/features/ideation/tools.ts`
+
+---
+
+## 2026-03-02: Nested Button Hydration Error
+
+**Context:** Document list items had a delete `<button>` inside a parent `<button>`, causing React hydration errors.
+
+**Decision:** Use `<div role="button" tabIndex={0}>` with keyboard handlers for the outer clickable element. Only the inner delete action uses a real `<button>`.
+
+**Files:** `src/components/features/docs/document-list.tsx`
+
+---
+
+## 2026-03-02: TipTap Extension-Image is Separate
+
+**Context:** TipTap v3 consolidated many extensions into `@tiptap/extensions`, but `Image` is NOT included there.
+
+**Decision:** Install `@tiptap/extension-image` separately and import as `import Image from "@tiptap/extension-image"`.
+
+**Files:** `src/components/features/docs/tiptap-setup.ts`
+
+---
+
+## 2026-03-02: Documents are User-Scoped, Not Project-Scoped
+
+**Context:** Documents could be scoped to projects or be independent.
+
+**Decision:** Documents belong to a user with an optional `project_id` (nullable FK). This allows cross-project documents like general lore or style guides. The `project_id` FK uses `ON DELETE SET NULL` so deleting a project doesn't delete documents.
+
+**Files:** `supabase/migrations/20260302100000_add_documents.sql`

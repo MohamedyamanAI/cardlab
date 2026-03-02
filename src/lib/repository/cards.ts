@@ -85,6 +85,25 @@ export async function bulkDeleteCards(
   if (error) throw error;
 }
 
+export async function bulkCreateCards(
+  supabase: SupabaseClient,
+  projectId: string,
+  dataArray: Record<string, unknown>[]
+): Promise<Card[]> {
+  const inserts = dataArray.map((data) => ({
+    project_id: projectId,
+    data,
+  }));
+
+  const { data: cards, error } = await supabase
+    .from("cards")
+    .insert(inserts)
+    .select();
+
+  if (error) throw error;
+  return cards as Card[];
+}
+
 export async function duplicateCards(
   supabase: SupabaseClient,
   cardIds: string[],

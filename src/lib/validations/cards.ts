@@ -1,4 +1,20 @@
 import { z } from "zod/v4";
+import { propertyTypeSchema } from "./properties";
+
+export const importCardsSchema = z.object({
+  project_id: z.string().uuid(),
+  mappings: z.array(
+    z.object({
+      sourceIndex: z.number().int().min(0),
+      action: z.enum(["map_existing", "create_new", "skip"]),
+      existingPropertySlug: z.string().optional(),
+      newPropertyName: z.string().min(1).max(50).optional(),
+      newPropertyType: propertyTypeSchema.optional(),
+      newPropertyOptions: z.array(z.string()).optional(),
+    })
+  ),
+  rows: z.array(z.array(z.string())).min(1).max(2000),
+});
 
 export const createCardSchema = z.object({
   project_id: z.string().uuid(),

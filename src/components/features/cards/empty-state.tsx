@@ -4,12 +4,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useCardsStore } from "@/lib/store/cards-store";
 import { CreateProjectDialog } from "./create-project-dialog";
-import { IconCards, IconFolderPlus, IconPlus } from "@tabler/icons-react";
+import { IconCards, IconFolderPlus, IconPlus, IconFileImport } from "@tabler/icons-react";
+import { ImportDialog } from "./import-dialog";
 
 export function EmptyState() {
   const { projects, selectedProjectId, cards, properties, addCard, isLoading } =
     useCardsStore();
   const [createOpen, setCreateOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -70,8 +72,18 @@ export function EmptyState() {
         />
         <h3 className="mt-4 text-lg font-medium">Define your card schema</h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          Add columns to define what properties your cards will have.
+          Add columns to define what properties your cards will have, or import
+          from a file.
         </p>
+        <Button
+          variant="outline"
+          className="mt-4"
+          onClick={() => setImportOpen(true)}
+        >
+          <IconFileImport size={16} className="mr-1.5" />
+          Import Cards
+        </Button>
+        <ImportDialog open={importOpen} onOpenChange={setImportOpen} />
       </div>
     );
   }
@@ -87,12 +99,19 @@ export function EmptyState() {
         />
         <h3 className="mt-4 text-lg font-medium">No cards yet</h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          Add your first card to get started.
+          Add your first card or import from a file.
         </p>
-        <Button className="mt-4" onClick={addCard}>
-          <IconPlus size={16} className="mr-1.5" />
-          Add Card
-        </Button>
+        <div className="mt-4 flex gap-2">
+          <Button onClick={addCard}>
+            <IconPlus size={16} className="mr-1.5" />
+            Add Card
+          </Button>
+          <Button variant="outline" onClick={() => setImportOpen(true)}>
+            <IconFileImport size={16} className="mr-1.5" />
+            Import
+          </Button>
+        </div>
+        <ImportDialog open={importOpen} onOpenChange={setImportOpen} />
       </div>
     );
   }

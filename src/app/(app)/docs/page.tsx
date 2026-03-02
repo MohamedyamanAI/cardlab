@@ -1,10 +1,17 @@
-export default function DocsPage() {
+import { getDocuments } from "@/lib/actions/documents";
+import { getProjects } from "@/lib/actions/projects";
+import { DocsClient } from "@/components/features/docs/docs-client";
+
+export default async function DocsPage() {
+  const [docsResult, projectsResult] = await Promise.all([
+    getDocuments(),
+    getProjects(),
+  ]);
+
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Docs</h1>
-      <p className="mt-2 text-muted-foreground">
-        Define your theme, lore, rules, turn structure, and win conditions.
-      </p>
-    </div>
+    <DocsClient
+      initialDocuments={docsResult.success ? docsResult.data : []}
+      projects={projectsResult.success ? projectsResult.data : []}
+    />
   );
 }

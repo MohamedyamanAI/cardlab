@@ -19,7 +19,11 @@ export async function POST(req: Request) {
   const selectedModel = model && ALLOWED_MODELS.has(model) ? model : undefined;
 
   return createAgentUIStreamResponse({
-    agent: createIdeationAgent(selectedModel),
+    agent: createIdeationAgent({
+      model: selectedModel,
+      supabase,
+      userId: user.id,
+    }),
     uiMessages: messages,
     abortSignal: req.signal,
   });

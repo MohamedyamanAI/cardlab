@@ -13,6 +13,10 @@ import {
   Settings01Icon,
   AiChat02Icon,
   AiBrain04Icon,
+  SourceCodeIcon,
+  Copy01Icon,
+  Tick02Icon,
+  Cancel01Icon,
 } from "@hugeicons/core-free-icons";
 import { Streamdown } from "streamdown";
 import { code } from "@streamdown/code";
@@ -159,6 +163,19 @@ export function IdeatorClient({ initialChats }: IdeatorClientProps) {
   );
 
   const isLoading = status === "streaming" || status === "submitted";
+  const isDev = process.env.NODE_ENV === "development";
+  const [showDebug, setShowDebug] = useState(false);
+  const [debugCopied, setDebugCopied] = useState(false);
+
+  const rawChatJson = useMemo(() => {
+    return JSON.stringify(messages, null, 2);
+  }, [messages]);
+
+  const handleCopyDebug = useCallback(async () => {
+    await navigator.clipboard.writeText(rawChatJson);
+    setDebugCopied(true);
+    setTimeout(() => setDebugCopied(false), 2000);
+  }, [rawChatJson]);
 
   return (
     <div className="flex h-[calc(100vh-5rem)] overflow-hidden rounded-2xl border border-border">
@@ -172,7 +189,27 @@ export function IdeatorClient({ initialChats }: IdeatorClientProps) {
       />
 
       {/* Chat column */}
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1">
+        <div className="flex min-w-0 flex-1 flex-col">
+        {/* Top bar — debug toggle (dev only) */}
+        {isDev && messages.length > 0 && (
+          <div className="flex justify-end px-3 py-1.5">
+            <button
+              type="button"
+              onClick={() => setShowDebug((v) => !v)}
+              className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs transition-colors ${
+                showDebug
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              title="Toggle raw chat debug"
+            >
+              <HugeiconsIcon icon={SourceCodeIcon} size={12} />
+              Debug
+            </button>
+          </div>
+        )}
+
         {/* Messages */}
         <ScrollArea className="min-h-0 flex-1">
           <div ref={scrollRef} className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
@@ -266,6 +303,37 @@ export function IdeatorClient({ initialChats }: IdeatorClientProps) {
             ))}
           </div>
         </div>
+        </div>
+
+        {/* Debug panel — right side */}
+        {showDebug && (
+          <div className="flex w-[40%] shrink-0 flex-col border-l border-border">
+            <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+              <HugeiconsIcon icon={SourceCodeIcon} size={14} className="text-muted-foreground" />
+              <span className="text-xs font-medium text-muted-foreground">Raw JSON</span>
+              <div className="flex-1" />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 gap-1.5 px-2 text-xs"
+                onClick={handleCopyDebug}
+              >
+                <HugeiconsIcon icon={debugCopied ? Tick02Icon : Copy01Icon} size={12} />
+                {debugCopied ? "Copied" : "Copy all"}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => setShowDebug(false)}
+              >
+                <HugeiconsIcon icon={Cancel01Icon} size={14} />
+              </Button>
+            </div>
+            <pre className="flex-1 overflow-auto p-3 font-mono text-[11px] leading-relaxed text-muted-foreground">
+              {rawChatJson || "[]"}
+            </pre>
+          </div>
+        )}
       </div>
     </div>
   );

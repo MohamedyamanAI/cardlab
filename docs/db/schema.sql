@@ -10,6 +10,11 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TYPE property_type_enum AS ENUM ('text', 'number', 'image', 'select', 'boolean', 'color');
 CREATE TYPE unit_enum AS ENUM ('px', 'mm', 'in');
+CREATE TYPE doc_type_enum AS ENUM (
+  'theme', 'lore', 'rules', 'card_types', 'sets',
+  'distribution', 'art_style_guide', 'keywords',
+  'resource_system', 'balance_rules'
+);
 CREATE TYPE media_type_enum AS ENUM ('image', 'document', 'spreadsheet');
 CREATE TYPE message_role_enum AS ENUM ('user', 'assistant', 'tool');
 CREATE TYPE status_enum AS ENUM ('draft', 'active', 'archived');
@@ -188,6 +193,23 @@ USING (
 );
 
 -- ============================================================================
+-- DOCUMENTS
+-- ============================================================================
+
+CREATE TABLE documents (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  project_id UUID REFERENCES projects(id) ON DELETE SET NULL,
+
+  title TEXT NOT NULL DEFAULT 'Untitled',
+  type doc_type_enum,
+  content JSONB NOT NULL DEFAULT '{"type":"doc","content":[{"type":"paragraph"}]}'::jsonb,
+
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================================
 -- AI CHATS & MESSAGES
 -- ============================================================================
 
@@ -223,6 +245,8 @@ CREATE INDEX idx_cards_project_id ON cards(project_id);
 CREATE INDEX idx_cards_data ON cards USING gin (data);
 CREATE INDEX idx_layouts_project_id ON layouts(project_id);
 CREATE INDEX idx_decks_project_id ON decks(project_id);
+CREATE INDEX idx_documents_user_id ON documents(user_id);
+CREATE INDEX idx_documents_project_id ON documents(project_id);
 CREATE INDEX idx_media_user_id ON media(user_id);
 CREATE INDEX idx_ai_chats_user_id ON ai_chats(user_id);
 CREATE INDEX idx_ai_chat_messages_chat_id ON ai_chat_messages(chat_id);
