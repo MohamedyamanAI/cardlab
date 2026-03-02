@@ -16,10 +16,10 @@ import type {
   ImportResult,
 } from "@/lib/types/import";
 import type { Property } from "@/lib/types";
-import { ImportSourceStep } from "./import-steps/source-step";
-import { ImportMappingStep } from "./import-steps/mapping-step";
-import { ImportTargetStep } from "./import-steps/target-step";
-import { ImportResultStep } from "./import-steps/result-step";
+import { ImportSourceStep } from "./steps/source-step";
+import { ImportMappingStep } from "./steps/mapping-step";
+import { ImportTargetStep } from "./steps/target-step";
+import { ImportResultStep } from "./steps/result-step";
 
 interface ImportDialogProps {
   open: boolean;

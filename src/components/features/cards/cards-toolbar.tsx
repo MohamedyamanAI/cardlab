@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useCardsStore } from "@/lib/store/cards-store";
-import { AddColumnPopover } from "./add-column-popover";
-import { ImportDialog } from "./import-dialog";
-import { ExportDropdown } from "./export-dropdown";
+import { AddColumnPopover } from "./grid/add-column-popover";
+import { ImportDialog } from "./import/import-dialog";
+import { ExportDropdown } from "./export/export-dropdown";
 import {
   IconPlus,
   IconTrash,

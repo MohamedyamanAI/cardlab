@@ -48,7 +48,12 @@ interface LayoutEditorState {
   // Persistence
   saveElements: () => Promise<void>;
 
-  // Condition
+  // Layout updates
+  updateLayoutDimensions: (
+    layoutId: string,
+    width: number,
+    height: number
+  ) => Promise<void>;
   updateLayoutCondition: (
     layoutId: string,
     condition: Json | null
@@ -276,6 +281,19 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
       toast.success("Layout saved");
     } else {
       set({ isSaving: false });
+      toast.error(result.error);
+    }
+  },
+
+  updateLayoutDimensions: async (layoutId, width, height) => {
+    const result = await layoutActions.updateLayout(layoutId, { width, height });
+    if (result.success) {
+      set((state) => ({
+        layouts: state.layouts.map((l) =>
+          l.id === layoutId ? { ...l, width, height } : l
+        ),
+      }));
+    } else {
       toast.error(result.error);
     }
   },

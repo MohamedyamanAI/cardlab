@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { IconPhoto, IconX } from "@tabler/icons-react";
 import { useMediaCacheStore } from "@/lib/store/media-cache-store";
-import { MediaPickerDialog } from "../media-picker-dialog";
+import { MediaPickerDialog } from "../../preview/media-picker-dialog";
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

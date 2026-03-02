@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MediaPickerDialog } from "@/components/features/cards/media-picker-dialog";
+import { MediaPickerDialog } from "@/components/features/cards/preview/media-picker-dialog";
 import { IconPhoto, IconX } from "@tabler/icons-react";
 import { useMediaCacheStore } from "@/lib/store/media-cache-store";
 import type { ImageElement } from "@/lib/types/canvas-elements";

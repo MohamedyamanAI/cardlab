@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useCardsStore } from "@/lib/store/cards-store";
 import { CreateProjectDialog } from "./create-project-dialog";
 import { IconCards, IconFolderPlus, IconPlus, IconFileImport } from "@tabler/icons-react";
-import { ImportDialog } from "./import-dialog";
+import { ImportDialog } from "./import/import-dialog";
 
 export function EmptyState() {
   const { projects, selectedProjectId, cards, properties, addCard, isLoading } =

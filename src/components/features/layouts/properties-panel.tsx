@@ -8,18 +8,33 @@ import { BindingSection } from "./property-sections/binding-section";
 import { TextStyleSection } from "./property-sections/text-style-section";
 import { ImageStyleSection } from "./property-sections/image-style-section";
 import { ShapeStyleSection } from "./property-sections/shape-style-section";
+import { CanvasSizeSection } from "./property-sections/canvas-size-section";
 
 export function PropertiesPanel() {
   const elements = useLayoutEditorStore((s) => s.elements);
   const selectedElementId = useLayoutEditorStore((s) => s.selectedElementId);
+  const currentLayoutId = useLayoutEditorStore((s) => s.currentLayoutId);
   const properties = useCardsStore((s) => s.properties);
 
   const element = elements.find((el) => el.id === selectedElementId);
 
   if (!element) {
     return (
-      <div className="flex w-56 items-center justify-center border-l p-4 text-xs text-muted-foreground">
-        Select an element to edit its properties.
+      <div className="w-56 border-l">
+        {currentLayoutId ? (
+          <ScrollArea className="h-full">
+            <div className="space-y-4 p-3">
+              <CanvasSizeSection />
+              <p className="text-xs text-muted-foreground">
+                Select an element to edit its properties.
+              </p>
+            </div>
+          </ScrollArea>
+        ) : (
+          <div className="flex h-full items-center justify-center p-4 text-xs text-muted-foreground">
+            Select an element to edit its properties.
+          </div>
+        )}
       </div>
     );
   }
