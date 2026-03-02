@@ -1,13 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useCardsStore } from "@/lib/store/cards-store";
 import { AddColumnPopover } from "./add-column-popover";
+import { ImportDialog } from "./import-dialog";
 import {
   IconPlus,
   IconTrash,
   IconCopy,
   IconLayoutSidebar,
+  IconFileImport,
 } from "@tabler/icons-react";
 
 interface CardsToolbarProps {
@@ -17,13 +20,15 @@ interface CardsToolbarProps {
 
 export function CardsToolbar({ previewOpen, onTogglePreview }: CardsToolbarProps) {
   const {
-    cards,
+    filteredCards,
     selectedCardIds,
     selectedProjectId,
     addCard,
     deleteSelectedCards,
     duplicateSelectedCards,
   } = useCardsStore();
+  const cards = filteredCards();
+  const [importOpen, setImportOpen] = useState(false);
 
   if (!selectedProjectId) return null;
 
@@ -42,6 +47,12 @@ export function CardsToolbar({ previewOpen, onTogglePreview }: CardsToolbarProps
           Add Column
         </Button>
       </AddColumnPopover>
+
+      <Button size="sm" variant="outline" onClick={() => setImportOpen(true)}>
+        <IconFileImport size={14} className="mr-1.5" />
+        Import
+      </Button>
+      <ImportDialog open={importOpen} onOpenChange={setImportOpen} />
 
       {selectionCount > 0 && (
         <>

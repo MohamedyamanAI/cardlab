@@ -1,9 +1,13 @@
 import { create } from "zustand";
-import type { Project, Property, Card, PropertyType } from "@/lib/types";
+import type { Project, Property, Card, Deck, PropertyType } from "@/lib/types";
 import type { Json } from "@/lib/supabase/database.types";
 import * as projectActions from "@/lib/actions/projects";
 import * as propertyActions from "@/lib/actions/properties";
 import * as cardActions from "@/lib/actions/cards";
+import * as deckActions from "@/lib/actions/decks";
+import * as importActions from "@/lib/actions/import";
+import type { ImportResult } from "@/lib/types/import";
+import type { ColumnMapping } from "@/lib/types/import";
 import { toast } from "sonner";
 
 interface CardsState {
@@ -12,6 +16,9 @@ interface CardsState {
   selectedProjectId: string | null;
   properties: Property[];
   cards: Card[];
+  decks: Deck[];
+  selectedDeckId: string | null;
+  deckCardIds: Set<string> | null; // null = no deck filter
 
   // UI State
   isLoading: boolean;
@@ -30,6 +37,13 @@ interface CardsState {
     name: string;
     description?: string;
   }) => Promise<Project | null>;
+
+  // Deck actions
+  createDeck: (input: { name: string; description?: string }) => Promise<Deck | null>;
+  selectDeck: (deckId: string | null) => Promise<void>;
+
+  // Computed
+  filteredCards: () => Card[];
 
   // Property actions
   addProperty: (input: {
@@ -50,6 +64,13 @@ interface CardsState {
   deleteProperty: (propertyId: string) => Promise<void>;
   moveProperty: (propertyId: string, direction: "left" | "right") => Promise<void>;
 
+  // Import
+  importCards: (input: {
+    project_id: string;
+    mappings: ColumnMapping[];
+    rows: string[][];
+  }) => Promise<ImportResult | null>;
+
   // Card actions
   addCard: () => Promise<void>;
   updateCell: (cardId: string, slug: string, value: unknown) => Promise<void>;
@@ -68,12 +89,17 @@ interface CardsState {
   clearFocusedCell: () => void;
 }
 
+const LS_KEY = "cardlab:lastProjectId";
+
 export const useCardsStore = create<CardsState>((set, get) => ({
   // Initial state
   projects: [],
   selectedProjectId: null,
   properties: [],
   cards: [],
+  decks: [],
+  selectedDeckId: null,
+  deckCardIds: null,
   isLoading: false,
   isInitialized: false,
   selectedCardIds: new Set(),
@@ -83,6 +109,13 @@ export const useCardsStore = create<CardsState>((set, get) => ({
   hydrate: (initialProjects) => {
     if (get().isInitialized) return;
     set({ projects: initialProjects, isInitialized: true });
+
+    if (initialProjects.length === 0) return;
+
+    const stored = localStorage.getItem(LS_KEY);
+    const match = stored && initialProjects.find((p) => p.id === stored);
+    const projectId = match ? match.id : initialProjects[0].id;
+    get().selectProject(projectId);
   },
 
   loadProjects: async () => {
@@ -95,21 +128,26 @@ export const useCardsStore = create<CardsState>((set, get) => ({
   },
 
   selectProject: async (projectId) => {
+    localStorage.setItem(LS_KEY, projectId);
     set({
       selectedProjectId: projectId,
       isLoading: true,
       selectedCardIds: new Set(),
       editingCell: null,
+      selectedDeckId: null,
+      deckCardIds: null,
     });
 
-    const [propsResult, cardsResult] = await Promise.all([
+    const [propsResult, cardsResult, decksResult] = await Promise.all([
       propertyActions.getProperties(projectId),
       cardActions.getCards(projectId),
+      deckActions.getDecks(projectId),
     ]);
 
     set({
       properties: propsResult.success ? propsResult.data : [],
       cards: cardsResult.success ? cardsResult.data : [],
+      decks: decksResult.success ? decksResult.data : [],
       isLoading: false,
     });
 
@@ -125,6 +163,44 @@ export const useCardsStore = create<CardsState>((set, get) => ({
     }
     toast.error(result.error);
     return null;
+  },
+
+  // Deck actions
+  createDeck: async (input) => {
+    const { selectedProjectId } = get();
+    if (!selectedProjectId) return null;
+
+    const result = await deckActions.createDeck({
+      project_id: selectedProjectId,
+      ...input,
+    });
+    if (result.success) {
+      set((state) => ({ decks: [result.data, ...state.decks] }));
+      return result.data;
+    }
+    toast.error(result.error);
+    return null;
+  },
+
+  selectDeck: async (deckId) => {
+    if (!deckId) {
+      set({ selectedDeckId: null, deckCardIds: null });
+      return;
+    }
+    set({ selectedDeckId: deckId });
+    const result = await deckActions.getDeckCardIds(deckId);
+    if (result.success) {
+      set({ deckCardIds: new Set(result.data) });
+    } else {
+      toast.error(result.error);
+      set({ selectedDeckId: null, deckCardIds: null });
+    }
+  },
+
+  filteredCards: () => {
+    const { cards, deckCardIds } = get();
+    if (!deckCardIds) return cards;
+    return cards.filter((c) => deckCardIds.has(c.id));
   },
 
   // Property actions
@@ -207,6 +283,25 @@ export const useCardsStore = create<CardsState>((set, get) => ({
       set({ properties: prevProperties });
       toast.error(result.error);
     }
+  },
+
+  // Import
+  importCards: async (input) => {
+    const result = await importActions.importCards(input);
+    if (result.success) {
+      // Reload the project data to pick up new properties + cards
+      const { selectProject } = get();
+      await selectProject(input.project_id);
+      toast.success(
+        `Imported ${result.data.importedCount} cards` +
+          (result.data.createdProperties.length > 0
+            ? ` and created ${result.data.createdProperties.length} new properties`
+            : "")
+      );
+      return result.data;
+    }
+    toast.error(result.error);
+    return null;
   },
 
   // Card actions

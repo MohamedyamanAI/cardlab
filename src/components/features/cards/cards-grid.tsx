@@ -19,7 +19,7 @@ function isPrintableKey(e: React.KeyboardEvent): boolean {
 export function CardsGrid() {
   const {
     properties,
-    cards,
+    filteredCards,
     selectedCardIds,
     toggleCardSelection,
     selectAllCards,
@@ -32,6 +32,8 @@ export function CardsGrid() {
     stopEditing,
     updateCell,
   } = useCardsStore();
+
+  const cards = filteredCards();
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -283,7 +285,7 @@ export function CardsGrid() {
   return (
     <div
       ref={containerRef}
-      className="min-h-0 overflow-auto outline-none"
+      className="h-full overflow-auto outline-none"
       tabIndex={0}
       onKeyDown={handleKeyDown}
     >

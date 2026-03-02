@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { useCardsStore } from "@/lib/store/cards-store";
 import { CreateProjectDialog } from "./create-project-dialog";
+import { IconFolder } from "@tabler/icons-react";
 
 export function ProjectSelector() {
   const { projects, selectedProjectId, selectProject } = useCardsStore();
@@ -28,7 +29,10 @@ export function ProjectSelector() {
     <>
       <Select value={selectedProjectId ?? ""} onValueChange={handleValueChange}>
         <SelectTrigger className="w-[240px]">
-          <SelectValue placeholder="Select a project..." />
+          <div className="flex items-center gap-2">
+            <IconFolder size={14} className="shrink-0 text-muted-foreground" />
+            <SelectValue placeholder="Select a project..." />
+          </div>
         </SelectTrigger>
         <SelectContent>
           {projects.map((project) => (

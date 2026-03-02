@@ -6,6 +6,7 @@ import { useLayoutEditorStore } from "@/lib/store/layout-editor-store";
 import { useMediaResolution } from "@/hooks/use-media-resolution";
 import type { Project } from "@/lib/types";
 import { ProjectSelector } from "./project-selector";
+import { DeckSelector } from "./deck-selector";
 import { CardsToolbar } from "./cards-toolbar";
 import { CardsGrid } from "./cards-grid";
 import { CardLayoutPreview } from "./card-layout-preview";
@@ -47,23 +48,25 @@ export function CardsPageClient({ initialProjects }: CardsPageClientProps) {
 
   return (
     <div className="flex h-full flex-col gap-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Cards</h1>
-          <p className="text-sm text-muted-foreground">
-            Create and manage your card data.
-          </p>
-        </div>
-        <ProjectSelector />
-      </div>
-
       {/* Tabs */}
       <Tabs defaultValue="data" className="flex flex-1 flex-col overflow-hidden">
-        <TabsList>
-          <TabsTrigger value="data">Data</TabsTrigger>
-          <TabsTrigger value="layout">Layout</TabsTrigger>
-        </TabsList>
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Cards</h1>
+            <p className="text-sm text-muted-foreground">
+              Create and manage your card data.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <TabsList>
+              <TabsTrigger value="data">Data</TabsTrigger>
+              <TabsTrigger value="layout">Layout</TabsTrigger>
+            </TabsList>
+            <DeckSelector />
+            <ProjectSelector />
+          </div>
+        </div>
 
         <TabsContent value="data" className="flex flex-1 flex-col gap-4 overflow-hidden">
           {/* Toolbar - only show when project is selected */}
@@ -79,7 +82,9 @@ export function CardsPageClient({ initialProjects }: CardsPageClientProps) {
             <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-border">
               <ResizablePanelGroup orientation="horizontal">
                 <ResizablePanel defaultSize={previewOpen ? 65 : 100} minSize={30}>
-                  <CardsGrid />
+                  <div className="h-full overflow-hidden">
+                    <CardsGrid />
+                  </div>
                 </ResizablePanel>
                 {previewOpen && canPreview && (
                   <>
