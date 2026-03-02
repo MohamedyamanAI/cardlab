@@ -7,6 +7,42 @@ import { toast } from "sonner";
 
 const MAX_HISTORY = 100;
 
+const ZOOM_STEPS = [0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4];
+const MIN_ZOOM = ZOOM_STEPS[0];
+const MAX_ZOOM = ZOOM_STEPS[ZOOM_STEPS.length - 1];
+
+export type RulerUnit = "px" | "in" | "cm" | "mm";
+
+/** DPI used for converting between pixels and physical units */
+export const CANVAS_DPI = 300;
+
+/** Convert px value to the given unit */
+export function pxToUnit(px: number, unit: RulerUnit): number {
+  switch (unit) {
+    case "px": return px;
+    case "in": return px / CANVAS_DPI;
+    case "cm": return (px / CANVAS_DPI) * 2.54;
+    case "mm": return (px / CANVAS_DPI) * 25.4;
+  }
+}
+
+/** Convert unit value back to px */
+export function unitToPx(val: number, unit: RulerUnit): number {
+  switch (unit) {
+    case "px": return val;
+    case "in": return val * CANVAS_DPI;
+    case "cm": return val / 2.54 * CANVAS_DPI;
+    case "mm": return val / 25.4 * CANVAS_DPI;
+  }
+}
+
+/** Format a value for display in the given unit */
+export function formatUnit(px: number, unit: RulerUnit): string {
+  const v = pxToUnit(px, unit);
+  if (unit === "px") return `${Math.round(v)} px`;
+  return `${v.toFixed(2)} ${unit}`;
+}
+
 interface LayoutEditorState {
   // Data
   layouts: Layout[];
@@ -19,6 +55,22 @@ interface LayoutEditorState {
 
   // Clipboard (internal, not persisted)
   clipboard: CanvasElement[];
+
+  // Zoom & pan
+  zoom: number;
+  panX: number;
+  panY: number;
+  isSpaceHeld: boolean;
+  showRulers: boolean;
+  rulerUnit: RulerUnit;
+  setZoom: (zoom: number, focalX?: number, focalY?: number) => void;
+  zoomIn: () => void;
+  zoomOut: () => void;
+  setPan: (x: number, y: number) => void;
+  resetView: () => void;
+  setIsSpaceHeld: (held: boolean) => void;
+  setShowRulers: (show: boolean) => void;
+  setRulerUnit: (unit: RulerUnit) => void;
 
   // Undo/redo
   history: CanvasElement[][];
@@ -99,6 +151,12 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
   previewCardIndex: -1,
   isSaving: false,
   clipboard: [],
+  zoom: 0.5,
+  panX: 0,
+  panY: 0,
+  isSpaceHeld: false,
+  showRulers: true,
+  rulerUnit: "px" as RulerUnit,
   history: [],
   future: [],
 
@@ -541,5 +599,55 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
 
   setPreviewCardIndex: (index) => {
     set({ previewCardIndex: index });
+  },
+
+  // Zoom & pan
+  setZoom: (newZoom, focalX, focalY) => {
+    const clamped = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, newZoom));
+    const { zoom: oldZoom, panX, panY } = get();
+    if (focalX !== undefined && focalY !== undefined) {
+      // Adjust pan so point under cursor stays fixed
+      const scale = clamped / oldZoom;
+      set({
+        zoom: clamped,
+        panX: focalX - (focalX - panX) * scale,
+        panY: focalY - (focalY - panY) * scale,
+      });
+    } else {
+      set({ zoom: clamped });
+    }
+  },
+
+  zoomIn: () => {
+    const { zoom } = get();
+    const next = ZOOM_STEPS.find((s) => s > zoom + 0.001) ?? MAX_ZOOM;
+    get().setZoom(next);
+  },
+
+  zoomOut: () => {
+    const { zoom } = get();
+    const prev = [...ZOOM_STEPS].reverse().find((s) => s < zoom - 0.001) ?? MIN_ZOOM;
+    get().setZoom(prev);
+  },
+
+  setPan: (x, y) => {
+    set({ panX: x, panY: y });
+  },
+
+  resetView: () => {
+    // Will be recomputed by viewport auto-fit
+    set({ zoom: -1, panX: 0, panY: 0 });
+  },
+
+  setIsSpaceHeld: (held) => {
+    set({ isSpaceHeld: held });
+  },
+
+  setShowRulers: (show) => {
+    set({ showRulers: show });
+  },
+
+  setRulerUnit: (unit) => {
+    set({ rulerUnit: unit });
   },
 }));

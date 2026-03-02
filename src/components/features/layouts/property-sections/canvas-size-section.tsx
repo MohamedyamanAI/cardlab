@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useLayoutEditorStore } from "@/lib/store/layout-editor-store";
+import { useLayoutEditorStore, formatUnit } from "@/lib/store/layout-editor-store";
 import { CARD_SIZE_PRESETS, findPresetIndex } from "../card-size-presets";
 
 export function CanvasSizeSection() {
@@ -17,6 +17,7 @@ export function CanvasSizeSection() {
   const updateLayoutDimensions = useLayoutEditorStore(
     (s) => s.updateLayoutDimensions
   );
+  const rulerUnit = useLayoutEditorStore((s) => s.rulerUnit);
 
   const layout = layouts.find((l) => l.id === currentLayoutId);
   const layoutWidth = layout?.width ?? 750;
@@ -59,6 +60,10 @@ export function CanvasSizeSection() {
     }
   };
 
+  const dimensionDisplay = rulerUnit === "px"
+    ? `${layoutWidth} × ${layoutHeight} px`
+    : `${formatUnit(layoutWidth, rulerUnit)} × ${formatUnit(layoutHeight, rulerUnit)}`;
+
   return (
     <div className="space-y-2">
       <h4 className="text-xs font-medium uppercase text-muted-foreground">
@@ -79,7 +84,7 @@ export function CanvasSizeSection() {
       {isCustom ? (
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <Label className="text-xs">W</Label>
+            <Label className="text-xs">W (px)</Label>
             <Input
               type="number"
               min={1}
@@ -89,7 +94,7 @@ export function CanvasSizeSection() {
             />
           </div>
           <div>
-            <Label className="text-xs">H</Label>
+            <Label className="text-xs">H (px)</Label>
             <Input
               type="number"
               min={1}
@@ -98,10 +103,15 @@ export function CanvasSizeSection() {
               className="h-7 text-xs"
             />
           </div>
+          {rulerUnit !== "px" && (
+            <p className="col-span-2 text-xs text-muted-foreground">
+              {dimensionDisplay}
+            </p>
+          )}
         </div>
       ) : (
         <p className="text-xs text-muted-foreground">
-          {layoutWidth} × {layoutHeight} px
+          {dimensionDisplay}
         </p>
       )}
     </div>

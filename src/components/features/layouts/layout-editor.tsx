@@ -7,7 +7,6 @@ import { EditorHeader } from "./editor-header";
 import { ElementsPanel } from "./elements-panel";
 import { CanvasViewport } from "./canvas-viewport";
 import { PropertiesPanel } from "./properties-panel";
-import { CardPreviewBar } from "./card-preview-bar";
 
 export function LayoutEditor() {
   const selectedProjectId = useCardsStore((s) => s.selectedProjectId);
@@ -26,6 +25,7 @@ export function LayoutEditor() {
   const elements = useLayoutEditorStore((s) => s.elements);
   const undo = useLayoutEditorStore((s) => s.undo);
   const redo = useLayoutEditorStore((s) => s.redo);
+  const setIsSpaceHeld = useLayoutEditorStore((s) => s.setIsSpaceHeld);
 
   useEffect(() => {
     if (selectedProjectId) {
@@ -99,6 +99,13 @@ export function LayoutEditor() {
 
       if (isInput) return;
 
+      // Space → pan mode
+      if (e.key === " " || e.code === "Space") {
+        e.preventDefault();
+        setIsSpaceHeld(true);
+        return;
+      }
+
       // Escape → deselect
       if (e.key === "Escape") {
         clearSelection();
@@ -128,13 +135,26 @@ export function LayoutEditor() {
         moveSelectedElements(dx, dy);
       }
     },
-    [isDirty, saveElements, clearSelection, selectedElementIds, deleteSelectedElements, moveSelectedElements, elements, undo, redo, duplicateSelectedElements, copySelectedElements, cutSelectedElements, pasteElements]
+    [isDirty, saveElements, clearSelection, selectedElementIds, deleteSelectedElements, moveSelectedElements, elements, undo, redo, duplicateSelectedElements, copySelectedElements, cutSelectedElements, pasteElements, setIsSpaceHeld]
+  );
+
+  const handleKeyUp = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === " " || e.code === "Space") {
+        setIsSpaceHeld(false);
+      }
+    },
+    [setIsSpaceHeld]
   );
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleKeyDown]);
+    window.addEventListener("keyup", handleKeyUp);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, [handleKeyDown, handleKeyUp]);
 
   // Beforeunload warning
   useEffect(() => {
@@ -163,7 +183,6 @@ export function LayoutEditor() {
         <CanvasViewport />
         {currentLayoutId && <PropertiesPanel />}
       </div>
-      {currentLayoutId && <CardPreviewBar />}
     </div>
   );
 }
