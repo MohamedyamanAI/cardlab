@@ -17,6 +17,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from "@/components/ui/resizable";
 import { DocumentList } from "./document-list";
 import { DocumentCard } from "./document-card";
 import { DocumentEditor } from "./document-editor";
@@ -30,11 +35,12 @@ import type { Document, DocType, Project } from "@/lib/types";
 type DocsClientProps = {
   initialDocuments: Document[];
   projects: Project[];
+  initialSelectedId?: string;
 };
 
-export function DocsClient({ initialDocuments, projects }: DocsClientProps) {
+export function DocsClient({ initialDocuments, projects, initialSelectedId }: DocsClientProps) {
   const [documents, setDocuments] = useState(initialDocuments);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(initialSelectedId ?? null);
   const [typeFilters, setTypeFilters] = useState<Set<DocType>>(new Set());
   const [projectFilters, setProjectFilters] = useState<Set<string>>(new Set());
   const [mounted, setMounted] = useState(false);
@@ -104,22 +110,27 @@ export function DocsClient({ initialDocuments, projects }: DocsClientProps) {
     <div className="flex h-[calc(100vh-5rem)] overflow-hidden rounded-2xl border border-border">
       {/* Right panel — editor or grid */}
       {selectedDoc ? (
-        <>
-        <DocumentList
-          documents={documents}
-          selectedId={selectedId}
-          onSelect={handleOpenDoc}
-          onCreate={handleCreate}
-          onDelete={handleDelete}
-        />
-        <DocumentEditor
-          key={selectedDoc.id}
-          document={selectedDoc}
-          projects={projects}
-          onUpdated={handleDocUpdated}
-          onBack={handleBack}
-        />
-        </>
+        <ResizablePanelGroup orientation="horizontal" className="h-full">
+          <ResizablePanel defaultSize="20%" minSize="15%" maxSize="50%">
+            <DocumentList
+              documents={documents}
+              selectedId={selectedId}
+              onSelect={handleOpenDoc}
+              onCreate={handleCreate}
+              onDelete={handleDelete}
+            />
+          </ResizablePanel>
+          <ResizableHandle />
+          <ResizablePanel defaultSize="80%">
+            <DocumentEditor
+              key={selectedDoc.id}
+              document={selectedDoc}
+              projects={projects}
+              onUpdated={handleDocUpdated}
+              onBack={handleBack}
+            />
+          </ResizablePanel>
+        </ResizablePanelGroup>
       ) : (
         <div className="flex min-w-0 flex-1 flex-col gap-4 p-4">
           {/* Top bar with filters */}

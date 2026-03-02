@@ -20,21 +20,24 @@ import {
   MinusSignIcon,
   UndoIcon,
   RedoIcon,
+  Tag01Icon,
+  Folder01Icon,
 } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { uploadMedia, getSignedUrl } from "@/lib/actions/media";
 import { updateDocument } from "@/lib/actions/documents";
-import type { Document, Project } from "@/lib/types";
+import type { Document, DocType, Project } from "@/lib/types";
 import type { Editor } from "@tiptap/react";
 import type { IconSvgElement } from "@hugeicons/react";
-import { DOC_TYPES } from "./constants";
+import { DOC_TYPES, DOC_TYPE_LABELS, DOC_TYPE_COLORS } from "./constants";
 import { createEditorExtensions } from "./tiptap-setup";
 
 type DocumentEditorProps = {
@@ -249,20 +252,25 @@ export function DocumentEditor({
     [document.title, save]
   );
 
-  const handleTypeChange = useCallback(
-    (value: string) => {
-      const type = value === "none" ? null : value;
-      save({ type });
+  const [localType, setLocalType] = useState<string | null>(document.type ?? null);
+  const [localProjectId, setLocalProjectId] = useState<string | null>(document.project_id ?? null);
+
+  const handleTypeToggle = useCallback(
+    (type: string) => {
+      const newType = localType === type ? null : type;
+      setLocalType(newType);
+      save({ type: newType });
     },
-    [save]
+    [localType, save]
   );
 
-  const handleProjectChange = useCallback(
-    (value: string) => {
-      const project_id = value === "none" ? null : value;
-      save({ project_id });
+  const handleProjectToggle = useCallback(
+    (id: string) => {
+      const newId = localProjectId === id ? null : id;
+      setLocalProjectId(newId);
+      save({ project_id: newId });
     },
-    [save]
+    [localProjectId, save]
   );
 
   return (
@@ -282,6 +290,72 @@ export function DocumentEditor({
           className="min-w-0 flex-1 bg-transparent text-lg font-semibold outline-none"
           placeholder="Untitled"
         />
+
+        {/* Type dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="h-7 shrink-0 gap-1.5 text-xs">
+              {localType ? (
+                <>
+                  <span className={`inline-flex h-2 w-2 rounded-full ${DOC_TYPE_COLORS[localType as DocType].bg} ${DOC_TYPE_COLORS[localType as DocType].text}`} />
+                  {DOC_TYPE_LABELS[localType as DocType]}
+                </>
+              ) : (
+                <>
+                  <HugeiconsIcon icon={Tag01Icon} size={14} />
+                  Type
+                </>
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuLabel>Document type</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {DOC_TYPES.map(([value, label]) => {
+              const colors = DOC_TYPE_COLORS[value];
+              return (
+                <DropdownMenuCheckboxItem
+                  key={value}
+                  checked={localType === value}
+                  onCheckedChange={() => handleTypeToggle(value)}
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  <span className={`inline-flex h-2 w-2 rounded-full ${colors.bg} ring-1 ring-current/20 ${colors.text}`} />
+                  {label}
+                </DropdownMenuCheckboxItem>
+              );
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Project dropdown */}
+        {projects.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-7 shrink-0 gap-1.5 text-xs">
+                <HugeiconsIcon icon={Folder01Icon} size={14} />
+                {localProjectId
+                  ? projects.find((p) => p.id === localProjectId)?.name ?? "Project"
+                  : "Project"}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuLabel>Project</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {projects.map((project) => (
+                <DropdownMenuCheckboxItem
+                  key={project.id}
+                  checked={localProjectId === project.id}
+                  onCheckedChange={() => handleProjectToggle(project.id)}
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  {project.name}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
         {saving && (
           <HugeiconsIcon
             icon={Loading03Icon}
@@ -291,47 +365,8 @@ export function DocumentEditor({
         )}
       </div>
 
-      {/* Meta + formatting toolbar */}
+      {/* Formatting toolbar */}
       <div className="flex flex-wrap items-center gap-1 border-b border-border px-4 py-1.5">
-        {/* Document meta */}
-        <Select
-          defaultValue={document.type ?? "none"}
-          onValueChange={handleTypeChange}
-          key={`type-${document.id}`}
-        >
-          <SelectTrigger className="h-7 w-36 text-xs">
-            <SelectValue placeholder="No type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">No type</SelectItem>
-            {DOC_TYPES.map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select
-          defaultValue={document.project_id ?? "none"}
-          onValueChange={handleProjectChange}
-          key={`project-${document.id}`}
-        >
-          <SelectTrigger className="h-7 w-40 text-xs">
-            <SelectValue placeholder="No project" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">No project</SelectItem>
-            {projects.map((p) => (
-              <SelectItem key={p.id} value={p.id}>
-                {p.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <div className="mx-1.5 h-4 w-px bg-border" />
-
         {/* Formatting buttons */}
         {editor && TOOLBAR_GROUPS.map((group, gi) => (
           <div key={gi} className="flex items-center">

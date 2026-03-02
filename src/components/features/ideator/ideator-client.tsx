@@ -13,6 +13,7 @@ import {
   Settings01Icon,
   AiChat02Icon,
   AiBrain04Icon,
+  NoteIcon,
   SourceCodeIcon,
   Copy01Icon,
   Tick02Icon,
@@ -23,6 +24,7 @@ import { code } from "@streamdown/code";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatHistory } from "./chat-history";
+import { DocumentPreviewCard } from "./document-preview-card";
 import {
   createChat,
   getChatMessages,
@@ -75,12 +77,29 @@ export function IdeatorClient({ initialChats }: IdeatorClientProps) {
         .map((p) => p.text)
         .join("\n");
 
-      if (assistantText) {
-        await saveMessages(persistChatId, [
-          { role: "user", content: userText },
-          { role: "assistant", content: assistantText },
-        ]);
+      // Extract completed tool results for persistence
+      const toolResults = message.parts
+        .filter(isToolUIPart)
+        .filter((p) => p.state === "output-available" && p.output)
+        .map((p) => ({
+          toolName: getToolName(p),
+          toolCallId: p.toolCallId,
+          output: p.output,
+        }));
+
+      const msgs: { role: "user" | "assistant" | "tool"; content: string | null; toolCalls?: unknown }[] = [
+        { role: "user", content: userText },
+      ];
+
+      if (assistantText || toolResults.length > 0) {
+        msgs.push({
+          role: "assistant",
+          content: assistantText || null,
+          ...(toolResults.length > 0 && { toolCalls: toolResults }),
+        });
       }
+
+      await saveMessages(persistChatId, msgs);
     },
   });
 
@@ -150,12 +169,33 @@ export function IdeatorClient({ initialChats }: IdeatorClientProps) {
 
       const result = await getChatMessages(selectedChatId);
       if (result.success) {
-        const uiMessages: UIMessage[] = result.data.map((msg) => ({
-          id: msg.id,
-          role: msg.role as "user" | "assistant",
-          parts: [{ type: "text" as const, text: msg.content ?? "" }],
-          createdAt: new Date(msg.created_at ?? Date.now()),
-        }));
+        const uiMessages: UIMessage[] = result.data.map((msg) => {
+          const parts: UIMessage["parts"] = [];
+
+          // Reconstruct tool parts from persisted tool_calls
+          if (msg.tool_calls && Array.isArray(msg.tool_calls)) {
+            for (const call of msg.tool_calls as { toolName: string; toolCallId: string; output: unknown }[]) {
+              parts.push({
+                type: `tool-${call.toolName}`,
+                toolCallId: call.toolCallId,
+                state: "output-available",
+                input: {},
+                output: call.output,
+              } as unknown as UIMessage["parts"][number]);
+            }
+          }
+
+          if (msg.content) {
+            parts.push({ type: "text" as const, text: msg.content });
+          }
+
+          return {
+            id: msg.id,
+            role: msg.role as "user" | "assistant",
+            parts,
+            createdAt: new Date(msg.created_at ?? Date.now()),
+          };
+        });
         setMessages(uiMessages);
       }
     },
@@ -343,6 +383,7 @@ const streamdownPlugins = { code };
 
 const TOOL_DISPLAY: Record<string, { label: string; icon: typeof Search01Icon }> = {
   google_search: { label: "Searching the web", icon: Search01Icon },
+  create_document: { label: "Creating document", icon: NoteIcon },
 };
 
 function getToolDisplay(toolName: string) {
@@ -396,6 +437,28 @@ function MessageBubble({
               const name = getToolName(toolPart);
               const display = getToolDisplay(name);
               const isDone = toolPart.state === "output-available";
+
+              // Rich preview for completed create_document
+              if (name === "create_document" && isDone) {
+                const result = toolPart.output as {
+                  success: boolean;
+                  documentId: string;
+                  title: string;
+                  type: string | null;
+                  content: Record<string, unknown>;
+                } | null;
+                if (result?.success) {
+                  return (
+                    <DocumentPreviewCard
+                      key={toolPart.toolCallId}
+                      documentId={result.documentId}
+                      title={result.title}
+                      type={result.type}
+                      content={result.content}
+                    />
+                  );
+                }
+              }
 
               return (
                 <div

@@ -10,8 +10,8 @@ Use web search when you need current information about game design trends, exist
 Keep responses focused and actionable. When suggesting card concepts, include concrete details like names, stats, abilities, and flavor text where relevant.
 
 IMPORTANT — Document creation:
-You have a create_document tool. You MUST use it whenever the user asks to "create", "write", "draft", "make", or "generate" a document, lore, rules, theme guide, or any structured game design content. Do NOT write the document content in the chat — always call create_document with the full content as HTML. After creating the document, briefly confirm what was created.
-When calling create_document, write rich, well-structured HTML content using <h2>, <h3>, <p>, <ul>, <li>, <ol>, <strong>, <em>, and <blockquote> tags.`;
+You have a create_document tool. You MUST use it whenever the user asks to "create", "write", "draft", "make", or "generate" a document, lore, rules, theme guide, or any structured game design content. Do NOT write the document content in the chat — always call create_document with the full content as Markdown. After creating the document, briefly confirm what was created.
+When calling create_document, write rich, well-structured Markdown using ## headings, **bold**, *italic*, - bullet lists, 1. numbered lists, > blockquotes, etc.`;
 
 export function createIdeationAgent(opts?: {
   model?: string;

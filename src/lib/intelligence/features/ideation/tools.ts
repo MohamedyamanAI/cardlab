@@ -1,5 +1,6 @@
 import { tool } from "ai";
 import { z } from "zod";
+import { marked, type Token, type Tokens } from "marked";
 import * as docRepo from "@/lib/repository/documents";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/lib/supabase/database.types";
@@ -37,12 +38,12 @@ export function createIdeationTools(
         content: z
           .string()
           .describe(
-            "The document content as HTML. Use proper HTML tags like <h2>, <p>, <ul>, <li>, <strong>, <em>, <blockquote> for formatting."
+            "The document content as Markdown. Use standard Markdown: ## headings, **bold**, *italic*, - bullet lists, 1. numbered lists, > blockquotes, etc."
           ),
       }),
       execute: async ({ title, type, content }) => {
         try {
-          const tiptapContent = htmlToTiptapJson(content) as Json;
+          const tiptapContent = markdownToTiptap(content) as Json;
           const doc = await docRepo.createDocument(supabase, {
             userId,
             title,
@@ -54,6 +55,8 @@ export function createIdeationTools(
             success: true,
             documentId: doc.id,
             title,
+            type: type ?? null,
+            content: tiptapContent,
             message: `Document "${title}" created successfully. The user can find it in their Docs page.`,
           };
         } catch {
@@ -67,148 +70,199 @@ export function createIdeationTools(
   };
 }
 
-/**
- * Convert simple HTML to a basic TipTap JSON structure.
- * Handles common block elements: paragraphs, headings, lists, blockquotes.
- */
-function htmlToTiptapJson(html: string): Record<string, unknown> {
-  const content: Record<string, unknown>[] = [];
+// ---------------------------------------------------------------------------
+// Markdown → TipTap JSON converter
+// Uses marked's lexer to tokenize, then maps tokens directly to TipTap nodes.
+// No HTML intermediary, no DOM dependency — fully server-safe.
+// ---------------------------------------------------------------------------
 
-  // Split by block-level tags and process
-  const blocks = html
-    .replace(/<br\s*\/?>/gi, "\n")
-    .split(/(?=<(?:h[1-6]|p|ul|ol|blockquote|hr)[>\s])|(?<=<\/(?:h[1-6]|p|ul|ol|blockquote)>)/gi)
-    .filter((s) => s.trim());
+type TipTapNode = Record<string, unknown>;
+type Mark = { type: string; attrs?: Record<string, unknown> };
 
-  for (const block of blocks) {
-    const trimmed = block.trim();
-    if (!trimmed) continue;
-
-    // Headings
-    const headingMatch = trimmed.match(/^<h([1-6])[^>]*>([\s\S]*?)<\/h[1-6]>/i);
-    if (headingMatch) {
-      content.push({
-        type: "heading",
-        attrs: { level: parseInt(headingMatch[1]) },
-        content: parseInline(headingMatch[2]),
-      });
-      continue;
-    }
-
-    // Unordered list
-    const ulMatch = trimmed.match(/^<ul[^>]*>([\s\S]*?)<\/ul>/i);
-    if (ulMatch) {
-      content.push(parseList(ulMatch[1], "bulletList"));
-      continue;
-    }
-
-    // Ordered list
-    const olMatch = trimmed.match(/^<ol[^>]*>([\s\S]*?)<\/ol>/i);
-    if (olMatch) {
-      content.push(parseList(olMatch[1], "orderedList"));
-      continue;
-    }
-
-    // Blockquote
-    const bqMatch = trimmed.match(/^<blockquote[^>]*>([\s\S]*?)<\/blockquote>/i);
-    if (bqMatch) {
-      content.push({
-        type: "blockquote",
-        content: [
-          {
-            type: "paragraph",
-            content: parseInline(bqMatch[1]),
-          },
-        ],
-      });
-      continue;
-    }
-
-    // HR
-    if (/^<hr/i.test(trimmed)) {
-      content.push({ type: "horizontalRule" });
-      continue;
-    }
-
-    // Paragraph (strip tags if wrapped)
-    const pMatch = trimmed.match(/^<p[^>]*>([\s\S]*?)<\/p>/i);
-    const innerText = pMatch ? pMatch[1] : trimmed;
-    const inline = parseInline(innerText);
-    if (inline.length > 0) {
-      content.push({ type: "paragraph", content: inline });
-    }
-  }
-
-  if (content.length === 0) {
-    // Fallback: treat entire HTML as a single paragraph
-    const inline = parseInline(html);
-    if (inline.length > 0) {
-      content.push({ type: "paragraph", content: inline });
-    } else {
-      content.push({ type: "paragraph" });
-    }
-  }
-
-  return { type: "doc", content };
+function markdownToTiptap(markdown: string): TipTapNode {
+  const tokens = marked.lexer(markdown);
+  const content = convertBlockTokens(tokens);
+  return {
+    type: "doc",
+    content: content.length > 0 ? content : [{ type: "paragraph" }],
+  };
 }
 
-function parseInline(html: string): Record<string, unknown>[] {
-  const results: Record<string, unknown>[] = [];
-  // Strip tags and extract text with marks
-  const stripped = html.replace(/<[^>]+>/g, (tag) => {
-    if (/<strong|<b\b/i.test(tag)) return "{{BOLD_START}}";
-    if (/<\/strong|<\/b>/i.test(tag)) return "{{BOLD_END}}";
-    if (/<em|<i\b/i.test(tag)) return "{{ITALIC_START}}";
-    if (/<\/em|<\/i>/i.test(tag)) return "{{ITALIC_END}}";
-    return "";
-  });
+function convertBlockTokens(tokens: Token[]): TipTapNode[] {
+  const result: TipTapNode[] = [];
 
-  // Simple approach: split by mark boundaries and create text nodes
-  const boldStack: boolean[] = [];
-  const italicStack: boolean[] = [];
-
-  const parts = stripped.split(/({{(?:BOLD|ITALIC)_(?:START|END)}})/);
-  let bold = false;
-  let italic = false;
-
-  for (const part of parts) {
-    if (part === "{{BOLD_START}}") { bold = true; boldStack.push(true); continue; }
-    if (part === "{{BOLD_END}}") { bold = boldStack.length > 1; boldStack.pop(); continue; }
-    if (part === "{{ITALIC_START}}") { italic = true; italicStack.push(true); continue; }
-    if (part === "{{ITALIC_END}}") { italic = italicStack.length > 1; italicStack.pop(); continue; }
-
-    const text = part.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'");
-    if (!text) continue;
-
-    const marks: Record<string, unknown>[] = [];
-    if (bold) marks.push({ type: "bold" });
-    if (italic) marks.push({ type: "italic" });
-
-    const node: Record<string, unknown> = { type: "text", text };
-    if (marks.length > 0) node.marks = marks;
-    results.push(node);
-  }
-
-  return results;
-}
-
-function parseList(
-  html: string,
-  listType: "bulletList" | "orderedList"
-): Record<string, unknown> {
-  const items: Record<string, unknown>[] = [];
-  const liRegex = /<li[^>]*>([\s\S]*?)<\/li>/gi;
-  let match;
-  while ((match = liRegex.exec(html)) !== null) {
-    items.push({
-      type: "listItem",
-      content: [
-        {
+  for (const token of tokens) {
+    switch (token.type) {
+      case "heading": {
+        const t = token as Tokens.Heading;
+        const content = convertInlineTokens(t.tokens ?? []);
+        result.push({
+          type: "heading",
+          attrs: { level: t.depth },
+          ...(content.length > 0 && { content }),
+        });
+        break;
+      }
+      case "paragraph": {
+        const t = token as Tokens.Paragraph;
+        const content = convertInlineTokens(t.tokens ?? []);
+        result.push({
           type: "paragraph",
-          content: parseInline(match[1]),
-        },
-      ],
-    });
+          ...(content.length > 0 && { content }),
+        });
+        break;
+      }
+      case "list": {
+        const t = token as Tokens.List;
+        const items = t.items.map((item) => ({
+          type: "listItem",
+          content: convertBlockTokens(item.tokens ?? []),
+        }));
+        result.push({
+          type: t.ordered ? "orderedList" : "bulletList",
+          content: items,
+        });
+        break;
+      }
+      case "blockquote": {
+        const t = token as Tokens.Blockquote;
+        result.push({
+          type: "blockquote",
+          content: convertBlockTokens(t.tokens ?? []),
+        });
+        break;
+      }
+      case "code": {
+        const t = token as Tokens.Code;
+        result.push({
+          type: "codeBlock",
+          ...(t.lang && { attrs: { language: t.lang } }),
+          content: [{ type: "text", text: t.text }],
+        });
+        break;
+      }
+      case "hr":
+        result.push({ type: "horizontalRule" });
+        break;
+      case "text": {
+        const t = token as Tokens.Text;
+        if (t.tokens && t.tokens.length > 0) {
+          const content = convertInlineTokens(t.tokens);
+          result.push({
+            type: "paragraph",
+            ...(content.length > 0 && { content }),
+          });
+        } else if (t.text) {
+          result.push({
+            type: "paragraph",
+            content: [{ type: "text", text: t.text }],
+          });
+        }
+        break;
+      }
+      case "space":
+        break;
+      default:
+        if ("text" in token && typeof token.text === "string") {
+          result.push({
+            type: "paragraph",
+            content: [{ type: "text", text: token.text }],
+          });
+        }
+        break;
+    }
   }
-  return { type: listType, content: items };
+
+  return result;
+}
+
+function convertInlineTokens(
+  tokens: Token[],
+  marks: Mark[] = []
+): TipTapNode[] {
+  const result: TipTapNode[] = [];
+
+  for (const token of tokens) {
+    switch (token.type) {
+      case "text": {
+        const t = token as Tokens.Text;
+        if (t.tokens && t.tokens.length > 0) {
+          result.push(...convertInlineTokens(t.tokens, marks));
+        } else if (t.text) {
+          const node: TipTapNode = { type: "text", text: t.text };
+          if (marks.length > 0) node.marks = [...marks];
+          result.push(node);
+        }
+        break;
+      }
+      case "strong": {
+        const t = token as Tokens.Strong;
+        result.push(
+          ...convertInlineTokens(t.tokens ?? [], [
+            ...marks,
+            { type: "bold" },
+          ])
+        );
+        break;
+      }
+      case "em": {
+        const t = token as Tokens.Em;
+        result.push(
+          ...convertInlineTokens(t.tokens ?? [], [
+            ...marks,
+            { type: "italic" },
+          ])
+        );
+        break;
+      }
+      case "del": {
+        const t = token as Tokens.Del;
+        result.push(
+          ...convertInlineTokens(t.tokens ?? [], [
+            ...marks,
+            { type: "strike" },
+          ])
+        );
+        break;
+      }
+      case "codespan": {
+        const t = token as Tokens.Codespan;
+        result.push({
+          type: "text",
+          text: t.text,
+          marks: [...marks, { type: "code" }],
+        });
+        break;
+      }
+      case "link": {
+        const t = token as Tokens.Link;
+        result.push(
+          ...convertInlineTokens(t.tokens ?? [], [
+            ...marks,
+            { type: "link", attrs: { href: t.href, target: "_blank" } },
+          ])
+        );
+        break;
+      }
+      case "br":
+        result.push({ type: "hardBreak" });
+        break;
+      case "escape": {
+        const t = token as Tokens.Escape;
+        const node: TipTapNode = { type: "text", text: t.text };
+        if (marks.length > 0) node.marks = [...marks];
+        result.push(node);
+        break;
+      }
+      default:
+        if ("text" in token && typeof token.text === "string") {
+          const node: TipTapNode = { type: "text", text: token.text };
+          if (marks.length > 0) node.marks = [...marks];
+          result.push(node);
+        }
+        break;
+    }
+  }
+
+  return result;
 }

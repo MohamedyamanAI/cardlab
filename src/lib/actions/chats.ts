@@ -102,7 +102,7 @@ export async function getChatMessages(
 
 export async function saveMessages(
   chatId: string,
-  messages: { role: "user" | "assistant"; content: string }[]
+  messages: { role: "user" | "assistant" | "tool"; content: string | null; toolCalls?: unknown }[]
 ): Promise<ActionResult> {
   const parsed = saveMessagesSchema.safeParse({ chatId, messages });
   if (!parsed.success) {
@@ -122,8 +122,9 @@ export async function saveMessages(
       supabase,
       parsed.data.messages.map((m) => ({
         chatId: parsed.data.chatId,
-        role: m.role,
-        content: m.content,
+        role: m.role as "user" | "assistant" | "tool",
+        content: m.content ?? null,
+        toolCalls: m.toolCalls as import("@/lib/supabase/database.types").Json | undefined,
       }))
     );
 

@@ -13,8 +13,9 @@ export const saveMessagesSchema = z.object({
   messages: z
     .array(
       z.object({
-        role: z.enum(["user", "assistant"]),
-        content: z.string().min(1).max(50000),
+        role: z.enum(["user", "assistant", "tool"]),
+        content: z.string().max(50000).nullable(),
+        toolCalls: z.unknown().optional(),
       })
     )
     .min(1),

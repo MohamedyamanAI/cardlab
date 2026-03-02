@@ -20,7 +20,7 @@ src/lib/intelligence/
 └── features/
     ├── ideation/
     │   ├── logic.ts      # Creates ideation agent with system prompt
-    │   ├── tools.ts      # create_document tool + HTML→TipTap converter
+    │   ├── tools.ts      # create_document tool + Markdown→TipTap converter
     │   ├── types.ts      # IdeationStreamParams
     │   └── index.ts      # Public exports
     └── image-generation/
@@ -67,17 +67,24 @@ The ideation agent is a card game design assistant. It can brainstorm mechanics,
 Input:
 - `title` (string) — document title
 - `type` (optional enum) — theme, lore, rules, card_types, sets, distribution, art_style_guide, keywords, resource_system, balance_rules
-- `content` (string) — HTML content with `<h2>`, `<p>`, `<ul>`, `<strong>`, etc.
+- `content` (string) — Markdown content with `##` headings, `**bold**`, `*italic*`, `- lists`, `> blockquotes`, etc.
 
 Execution:
-1. Receives HTML from the AI agent
-2. Converts to TipTap JSON via `htmlToTiptapJson()` (regex-based parser handling headings, paragraphs, lists, blockquotes, bold/italic marks)
-3. Persists via `docRepo.createDocument()` with the user's ID
-4. Returns `{ success, documentId, title }` to the agent
+1. Receives Markdown from the AI agent
+2. `marked.lexer()` tokenizes into an AST
+3. `markdownToTiptap()` maps tokens directly to TipTap JSON nodes (no HTML intermediary, no DOM dependency)
+4. Persists via `docRepo.createDocument()` with the user's ID
+5. Returns `{ success, documentId, title, type, content }` to the agent
 
 ### Client Integration
 
-`IdeatorClient` uses `useChat()` from `@ai-sdk/react` with `DefaultChatTransport`. Messages are stored in component state during the session. On `onFinish`, user and assistant text are persisted to the `ai_chat_messages` table for history.
+`IdeatorClient` uses `useChat()` from `@ai-sdk/react` with `DefaultChatTransport`. Messages are stored in component state during the session. On `onFinish`, user text, assistant text, and tool results are persisted to the `ai_chat_messages` table. Tool results are stored in the `tool_calls` JSONB column.
+
+When a completed `create_document` tool is detected, the chat renders a `DocumentPreviewCard` — a rich inline card with a scaled content preview, title, and type badge. Clicking it navigates to `/docs?open={documentId}`.
+
+### Tool Result Persistence
+
+Tool results must survive chat reload. The `ai_chat_messages` table has a `tool_calls` JSONB column and a `"tool"` role enum value. On `onFinish`, completed tool outputs are saved alongside the assistant text. On reload (`handleSelectChat`), tool parts are reconstructed with `type: "tool-{name}"` format (required by the AI SDK's `isToolUIPart()` / `getToolName()` helpers).
 
 The chat UI renders tool call states (streaming/available/done) inline with message text. A dev-only debug panel shows the raw JSON of all messages including tool calls.
 

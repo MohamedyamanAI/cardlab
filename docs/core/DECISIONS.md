@@ -4,6 +4,40 @@ Decisions made during development and issues discovered. Newest first.
 
 ---
 
+## 2026-03-02: AI SDK Tool Part Type Encodes Tool Name
+
+**Context:** Needed to persist tool call results in the database and reconstruct them when reloading chat history. The AI SDK's `isToolUIPart()` and `getToolName()` helpers determine tool identity from the part's `type` field.
+
+**Discovery:** `isStaticToolUIPart` checks `part.type.startsWith("tool-")`. `getStaticToolName` extracts the name via `part.type.split("-").slice(1).join("-")`. So a `create_document` tool has type `"tool-create_document"`.
+
+**Decision:** Persist tool results in the `tool_calls` JSONB column of `ai_chat_messages`. On reload, reconstruct parts with `type: "tool-{name}"` plus `toolCallId`, `state: "output-available"`, and `output`. This passes `isToolUIPart()` and renders the `DocumentPreviewCard`.
+
+**Files:** `src/components/features/ideator/ideator-client.tsx`, `src/lib/actions/chats.ts`, `src/lib/validations/chats.ts`
+
+---
+
+## 2026-03-02: Markdown for AI Document Creation, Not HTML
+
+**Context:** The `create_document` tool initially asked the AI to produce HTML, then used a custom regex parser (`htmlToTiptapJson`) to convert to TipTap JSON. The regex parser was fragile — bold marks inside list items weren't converted.
+
+**Decision:** AI now produces Markdown. `marked.lexer()` tokenizes it into an AST, then `markdownToTiptap()` maps tokens directly to TipTap JSON nodes. No HTML intermediary, no DOM dependency, fully server-safe. Handles headings, bold, italic, strikethrough, lists, blockquotes, code blocks, links, and horizontal rules.
+
+**Files:** `src/lib/intelligence/features/ideation/tools.ts`, `src/lib/intelligence/features/ideation/logic.ts`
+
+---
+
+## 2026-03-02: react-resizable-panels v4.7 Uses Pixels by Default
+
+**Context:** `ResizablePanel` `defaultSize`, `minSize`, `maxSize` were set as numbers (e.g. `defaultSize={20}`), expecting percentages. The sidebar rendered at 20 pixels wide.
+
+**Discovery:** In v4.7, numeric values are pixels. Percentages must be strings: `defaultSize="20%"`.
+
+**Decision:** Use string values with `%` suffix for percentage-based panel sizing.
+
+**Files:** `src/components/features/docs/docs-client.tsx`
+
+---
+
 ## 2026-03-02: Google Provider Tools Cannot Mix
 
 **Context:** The ideator agent had both `google.tools.googleSearch()` and a custom `create_document` tool. The AI model would say the tool was "unavailable" — it was never sent to the API.

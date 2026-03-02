@@ -34,7 +34,7 @@ export function DocumentList({
   );
 
   return (
-    <div className="flex h-full w-56 shrink-0 flex-col border-r border-border">
+    <div className="flex h-full w-full flex-col">
       <div className="flex items-center gap-2 border-b border-border p-3">
         <div className="relative flex-1">
           <HugeiconsIcon
