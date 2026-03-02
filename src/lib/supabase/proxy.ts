@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const protectedRoutes = ["/games", "/cards"];
+const protectedRoutes = ["/projects", "/docs", "/ideator", "/cards", "/generator", "/tester", "/print-ship"];
 const authRoutes = ["/auth/login", "/auth/signup", "/auth/forgot-password", "/auth/update-password"];
 
 export async function updateSession(request: NextRequest) {
@@ -34,13 +34,6 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // Redirect root to dashboard or login
-  if (pathname === "/") {
-    const url = request.nextUrl.clone();
-    url.pathname = user ? "/games" : "/auth/login";
-    return NextResponse.redirect(url);
-  }
-
   // Redirect unauthenticated users away from protected routes
   if (
     !user &&
@@ -57,7 +50,7 @@ export async function updateSession(request: NextRequest) {
     authRoutes.some((route) => pathname.startsWith(route))
   ) {
     const url = request.nextUrl.clone();
-    url.pathname = "/games";
+    url.pathname = "/projects";
     return NextResponse.redirect(url);
   }
 

@@ -53,5 +53,5 @@ export async function updatePassword(
     return { message: error.message };
   }
 
-  redirect("/games");
+  redirect("/projects");
 }

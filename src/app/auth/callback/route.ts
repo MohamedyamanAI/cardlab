@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/games";
+  const next = searchParams.get("next") ?? "/projects";
 
   if (code) {
     const supabase = await createClient();
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
       const forwardedHost = request.headers.get("x-forwarded-host");
       const isLocalEnv = process.env.NODE_ENV === "development";
 
-      const redirectTo = next.startsWith("/") ? next : "/games";
+      const redirectTo = next.startsWith("/") ? next : "/projects";
 
       if (isLocalEnv) {
         return NextResponse.redirect(`${origin}${redirectTo}`);

@@ -43,5 +43,5 @@ export async function login(
   }
 
   revalidatePath("/", "layout");
-  redirect("/games");
+  redirect("/projects");
 }
