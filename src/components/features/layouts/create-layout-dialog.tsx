@@ -39,7 +39,7 @@ export function CreateLayoutDialog({ open, onOpenChange }: CreateLayoutDialogPro
   const selectLayout = useLayoutEditorStore((s) => s.selectLayout);
   const selectedProjectId = useCardsStore((s) => s.selectedProjectId);
 
-  const preset = SIZE_PRESETS[Number(presetIndex)];
+  const preset = CARD_SIZE_PRESETS[Number(presetIndex)];
   const isCustom = preset.label === "Custom";
   const width = isCustom ? customWidth : preset.width;
   const height = isCustom ? customHeight : preset.height;
@@ -90,7 +90,7 @@ export function CreateLayoutDialog({ open, onOpenChange }: CreateLayoutDialogPro
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {SIZE_PRESETS.map((p, i) => (
+                {CARD_SIZE_PRESETS.map((p, i) => (
                   <SelectItem key={i} value={String(i)}>
                     {p.label}
                   </SelectItem>
