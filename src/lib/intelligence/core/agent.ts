@@ -4,6 +4,7 @@ import type { ToolLoopAgentSettings } from "ai";
 
 type CreateAgentOptions = {
   instructions: string;
+  model?: string;
   maxSteps?: number;
 };
 
@@ -11,9 +12,9 @@ type CreateAgentOptions = {
  * Creates a ToolLoopAgent with Google Search and a configurable system prompt.
  * Reusable across features — each caller provides its own instructions.
  */
-export function createAgent({ instructions, maxSteps = 10 }: CreateAgentOptions) {
+export function createAgent({ instructions, model = "gemini-2.5-flash", maxSteps = 10 }: CreateAgentOptions) {
   return new ToolLoopAgent({
-    model: google("gemini-2.5-flash"),
+    model: google(model),
     instructions,
     tools: {
       google_search: google.tools.googleSearch({}),

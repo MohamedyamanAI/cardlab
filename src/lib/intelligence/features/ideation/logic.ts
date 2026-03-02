@@ -6,6 +6,9 @@ Use web search when you need current information about game design trends, exist
 
 Keep responses focused and actionable. When suggesting card concepts, include concrete details like names, stats, abilities, and flavor text where relevant.`;
 
-export const ideationAgent = createAgent({
-  instructions: INSTRUCTIONS,
-});
+export function createIdeationAgent(model?: string) {
+  return createAgent({
+    instructions: INSTRUCTIONS,
+    model,
+  });
+}

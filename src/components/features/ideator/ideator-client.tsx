@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, isToolUIPart, getToolName } from "ai";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -11,6 +11,8 @@ import {
   Globe02Icon,
   Search01Icon,
   Settings01Icon,
+  AiChat02Icon,
+  AiBrain04Icon,
 } from "@hugeicons/core-free-icons";
 import { Streamdown } from "streamdown";
 import { code } from "@streamdown/code";
@@ -25,7 +27,10 @@ import {
 import type { UIMessage } from "ai";
 import type { AiChat } from "@/lib/types";
 
-const transport = new DefaultChatTransport({ api: "/api/chat" });
+const MODELS = [
+  { id: "gemini-2.5-flash", label: "Flash", icon: AiChat02Icon },
+  { id: "gemini-2.5-pro", label: "Pro", icon: AiBrain04Icon },
+] as const;
 
 type IdeatorClientProps = {
   initialChats: AiChat[];
@@ -35,10 +40,22 @@ export function IdeatorClient({ initialChats }: IdeatorClientProps) {
   const [chatId, setChatId] = useState<string | null>(null);
   const chatIdRef = useRef<string | null>(null);
   const [input, setInput] = useState("");
+  const [model, setModel] = useState<string>(MODELS[0].id);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const pendingUserMessage = useRef<string | null>(null);
+  const modelRef = useRef(model);
+  modelRef.current = model;
+
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: "/api/chat",
+        body: () => ({ model: modelRef.current }),
+      }),
+    []
+  );
 
   const { messages, sendMessage, status, setMessages } = useChat({
     transport,
@@ -79,6 +96,14 @@ export function IdeatorClient({ initialChats }: IdeatorClientProps) {
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  // Auto-expand textarea up to 4 rows
+  useEffect(() => {
+    const textarea = inputRef.current;
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 96)}px`;
+  }, [input]);
 
   const handleSend = useCallback(async () => {
     const text = input.trim();
@@ -136,22 +161,21 @@ export function IdeatorClient({ initialChats }: IdeatorClientProps) {
   const isLoading = status === "streaming" || status === "submitted";
 
   return (
-    <div className="relative flex h-[calc(100vh-6rem)] flex-col overflow-hidden rounded-2xl border border-border">
-      {/* Header */}
-      <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-        <ChatHistory
-          initialChats={initialChats}
-          currentChatId={chatId}
-          onSelectChat={handleSelectChat}
-          onNewChat={handleNewChat}
-          refreshKey={historyRefreshKey}
-        />
-        <h1 className="text-sm font-semibold">Ideator</h1>
-      </div>
+    <div className="flex h-[calc(100vh-5rem)] overflow-hidden rounded-2xl border border-border">
+      {/* Chat history side panel */}
+      <ChatHistory
+        initialChats={initialChats}
+        currentChatId={chatId}
+        onSelectChat={handleSelectChat}
+        onNewChat={handleNewChat}
+        refreshKey={historyRefreshKey}
+      />
 
-      {/* Messages */}
-      <ScrollArea className="min-h-0 flex-1">
-        <div ref={scrollRef} className="flex flex-col gap-4 p-4">
+      {/* Chat column */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Messages */}
+        <ScrollArea className="min-h-0 flex-1">
+          <div ref={scrollRef} className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
           {messages.length === 0 && (
             <div className="flex flex-1 flex-col items-center justify-center gap-3 py-24 text-center">
               <HugeiconsIcon
@@ -196,33 +220,51 @@ export function IdeatorClient({ initialChats }: IdeatorClientProps) {
         </div>
       </ScrollArea>
 
-      {/* Input */}
-      <div className="border-t border-border p-4">
-        <div className="flex items-end gap-2">
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Describe your card game idea..."
-            rows={1}
-            className="bg-input/30 border-input focus-visible:border-ring focus-visible:ring-ring/50 min-h-[2.5rem] max-h-32 flex-1 resize-none rounded-xl border px-3 py-2 text-sm outline-none transition-colors focus-visible:ring-[3px]"
-          />
-          <Button
-            size="icon"
-            onClick={handleSend}
-            disabled={!input.trim() || isLoading}
-          >
-            {isLoading ? (
-              <HugeiconsIcon
-                icon={Loading03Icon}
-                size={16}
-                className="animate-spin"
-              />
-            ) : (
-              <HugeiconsIcon icon={ArrowUp01Icon} size={16} />
-            )}
-          </Button>
+        {/* Input */}
+        <div className="p-4">
+          <div className="mx-auto flex max-w-2xl items-end gap-2">
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Describe your card game idea..."
+              rows={1}
+              className="bg-input/30 border-input focus-visible:border-ring focus-visible:ring-ring/50 min-h-[2.5rem] max-h-24 flex-1 resize-none overflow-y-auto rounded-xl border px-3 py-2 text-sm outline-none transition-colors focus-visible:ring-[3px]"
+            />
+            <Button
+              size="icon"
+              onClick={handleSend}
+              disabled={!input.trim() || isLoading}
+            >
+              {isLoading ? (
+                <HugeiconsIcon
+                  icon={Loading03Icon}
+                  size={16}
+                  className="animate-spin"
+                />
+              ) : (
+                <HugeiconsIcon icon={ArrowUp01Icon} size={16} />
+              )}
+            </Button>
+          </div>
+          <div className="mx-auto mt-2 flex max-w-2xl items-center gap-1">
+            {MODELS.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setModel(m.id)}
+                className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs transition-colors ${
+                  model === m.id
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <HugeiconsIcon icon={m.icon} size={12} />
+                {m.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>

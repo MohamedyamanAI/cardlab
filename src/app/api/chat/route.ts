@@ -1,6 +1,8 @@
 import { createAgentUIStreamResponse, type UIMessage } from "ai";
 import { createClient } from "@/lib/supabase/server";
-import { ideationAgent } from "@/lib/intelligence/features/ideation";
+import { createIdeationAgent } from "@/lib/intelligence/features/ideation";
+
+const ALLOWED_MODELS = new Set(["gemini-2.5-flash", "gemini-2.5-pro"]);
 
 export async function POST(req: Request) {
   const supabase = await createClient();
@@ -11,10 +13,13 @@ export async function POST(req: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const { messages }: { messages: UIMessage[] } = await req.json();
+  const { messages, model }: { messages: UIMessage[]; model?: string } =
+    await req.json();
+
+  const selectedModel = model && ALLOWED_MODELS.has(model) ? model : undefined;
 
   return createAgentUIStreamResponse({
-    agent: ideationAgent,
+    agent: createIdeationAgent(selectedModel),
     uiMessages: messages,
     abortSignal: req.signal,
   });

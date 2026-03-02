@@ -1,2 +1,2 @@
-export { ideationAgent } from "./logic";
+export { createIdeationAgent } from "./logic";
 export type { IdeationStreamParams } from "./types";
