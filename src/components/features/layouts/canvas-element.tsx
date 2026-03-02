@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { Rnd } from "react-rnd";
 import type { CanvasElement } from "@/lib/types/canvas-elements";
 import type { Card, Property } from "@/lib/types";
@@ -22,13 +23,16 @@ export function CanvasElementWrapper({
   scale,
   previewCard,
 }: CanvasElementProps) {
-  const selectedElementId = useLayoutEditorStore((s) => s.selectedElementId);
+  const selectedElementIds = useLayoutEditorStore((s) => s.selectedElementIds);
   const selectElement = useLayoutEditorStore((s) => s.selectElement);
   const moveElement = useLayoutEditorStore((s) => s.moveElement);
+  const moveSelectedElements = useLayoutEditorStore((s) => s.moveSelectedElements);
   const resizeElement = useLayoutEditorStore((s) => s.resizeElement);
   const updateElement = useLayoutEditorStore((s) => s.updateElement);
 
-  const isSelected = selectedElementId === element.id;
+  const isSelected = selectedElementIds.has(element.id);
+  const multiSelected = selectedElementIds.size > 1;
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
 
   // Resolve preview value if we have a card and a binding
   let previewValue: string | null = null;
@@ -49,10 +53,24 @@ export function CanvasElementWrapper({
       bounds="parent"
       onDragStart={(e) => {
         e.stopPropagation();
-        selectElement(element.id);
+        const me = e as MouseEvent;
+        // If not already selected, select (potentially additive)
+        if (!isSelected) {
+          selectElement(element.id, me.shiftKey);
+        }
+        dragStartRef.current = { x: element.x, y: element.y };
       }}
       onDragStop={(_e, d) => {
-        moveElement(element.id, d.x, d.y);
+        if (isSelected && multiSelected && dragStartRef.current) {
+          const dx = d.x - dragStartRef.current.x;
+          const dy = d.y - dragStartRef.current.y;
+          if (dx !== 0 || dy !== 0) {
+            moveSelectedElements(dx, dy);
+          }
+        } else {
+          moveElement(element.id, d.x, d.y);
+        }
+        dragStartRef.current = null;
       }}
       onResizeStop={(_e, _dir, ref, _delta, pos) => {
         resizeElement(
@@ -64,14 +82,19 @@ export function CanvasElementWrapper({
       }}
       onMouseDown={(e: MouseEvent) => {
         e.stopPropagation();
-        selectElement(element.id);
+        if (!isSelected) {
+          selectElement(element.id, e.shiftKey);
+        } else if (e.shiftKey) {
+          // Shift+click on already-selected → deselect
+          selectElement(element.id, true);
+        }
       }}
       style={{ zIndex: element.z_index }}
       className={cn(
         "group/el",
         isSelected && "ring-2 ring-blue-500"
       )}
-      enableResizing={isSelected}
+      enableResizing={isSelected && !multiSelected}
       resizeHandleStyles={{
         topLeft: { cursor: "nwse-resize" },
         topRight: { cursor: "nesw-resize" },

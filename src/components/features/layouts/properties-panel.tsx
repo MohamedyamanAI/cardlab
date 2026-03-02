@@ -9,15 +9,41 @@ import { TextStyleSection } from "./property-sections/text-style-section";
 import { ImageStyleSection } from "./property-sections/image-style-section";
 import { ShapeStyleSection } from "./property-sections/shape-style-section";
 import { CanvasSizeSection } from "./property-sections/canvas-size-section";
+import { AlignmentToolbar } from "./alignment-toolbar";
 
 export function PropertiesPanel() {
   const elements = useLayoutEditorStore((s) => s.elements);
-  const selectedElementId = useLayoutEditorStore((s) => s.selectedElementId);
+  const selectedElementIds = useLayoutEditorStore((s) => s.selectedElementIds);
   const currentLayoutId = useLayoutEditorStore((s) => s.currentLayoutId);
   const properties = useCardsStore((s) => s.properties);
 
-  const element = elements.find((el) => el.id === selectedElementId);
+  const selectedCount = selectedElementIds.size;
 
+  // For single selection, get the element
+  const element =
+    selectedCount === 1
+      ? elements.find((el) => selectedElementIds.has(el.id))
+      : undefined;
+
+  // Multi-select: show alignment toolbar only
+  if (selectedCount > 1) {
+    return (
+      <div className="w-56 border-l">
+        <ScrollArea className="h-full">
+          <div className="space-y-4 p-3">
+            <div>
+              <span className="text-xs font-medium text-muted-foreground">
+                {selectedCount} elements selected
+              </span>
+            </div>
+            <AlignmentToolbar />
+          </div>
+        </ScrollArea>
+      </div>
+    );
+  }
+
+  // No selection
   if (!element) {
     return (
       <div className="w-56 border-l">
@@ -39,6 +65,7 @@ export function PropertiesPanel() {
     );
   }
 
+  // Single element selected
   return (
     <div className="w-56 border-l">
       <ScrollArea className="h-full">

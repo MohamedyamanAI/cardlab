@@ -4,6 +4,7 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import { useLayoutEditorStore } from "@/lib/store/layout-editor-store";
 import { useCardsStore } from "@/lib/store/cards-store";
 import { CanvasElementWrapper } from "./canvas-element";
+import { MarqueeOverlay } from "./marquee-overlay";
 
 export function CanvasViewport() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -12,7 +13,7 @@ export function CanvasViewport() {
   const layouts = useLayoutEditorStore((s) => s.layouts);
   const currentLayoutId = useLayoutEditorStore((s) => s.currentLayoutId);
   const elements = useLayoutEditorStore((s) => s.elements);
-  const selectElement = useLayoutEditorStore((s) => s.selectElement);
+  const clearSelection = useLayoutEditorStore((s) => s.clearSelection);
   const previewCardIndex = useLayoutEditorStore((s) => s.previewCardIndex);
   const properties = useCardsStore((s) => s.properties);
   const cards = useCardsStore((s) => s.cards);
@@ -53,7 +54,13 @@ export function CanvasViewport() {
   }
 
   return (
-    <div ref={containerRef} className="relative flex flex-1 items-center justify-center overflow-hidden bg-muted/30">
+    <div
+      ref={containerRef}
+      className="relative flex flex-1 items-center justify-center overflow-hidden bg-muted/30"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) clearSelection();
+      }}
+    >
       <div
         style={{
           width: canvasWidth,
@@ -62,9 +69,6 @@ export function CanvasViewport() {
           transformOrigin: "center center",
         }}
         className="relative shrink-0 bg-neutral-800 shadow-2xl"
-        onClick={(e) => {
-          if (e.target === e.currentTarget) selectElement(null);
-        }}
       >
         {/* Bleed margin guide */}
         {bleedMargin > 0 && (
@@ -88,6 +92,13 @@ export function CanvasViewport() {
             properties={properties}
           />
         ))}
+
+        {/* Marquee selection overlay */}
+        <MarqueeOverlay
+          canvasWidth={canvasWidth}
+          canvasHeight={canvasHeight}
+          scale={scale}
+        />
       </div>
     </div>
   );

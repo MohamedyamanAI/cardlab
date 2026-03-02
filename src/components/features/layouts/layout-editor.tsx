@@ -15,10 +15,14 @@ export function LayoutEditor() {
   const currentLayoutId = useLayoutEditorStore((s) => s.currentLayoutId);
   const isDirty = useLayoutEditorStore((s) => s.isDirty);
   const saveElements = useLayoutEditorStore((s) => s.saveElements);
-  const selectedElementId = useLayoutEditorStore((s) => s.selectedElementId);
-  const selectElement = useLayoutEditorStore((s) => s.selectElement);
-  const deleteElement = useLayoutEditorStore((s) => s.deleteElement);
-  const moveElement = useLayoutEditorStore((s) => s.moveElement);
+  const selectedElementIds = useLayoutEditorStore((s) => s.selectedElementIds);
+  const clearSelection = useLayoutEditorStore((s) => s.clearSelection);
+  const deleteSelectedElements = useLayoutEditorStore((s) => s.deleteSelectedElements);
+  const moveSelectedElements = useLayoutEditorStore((s) => s.moveSelectedElements);
+  const duplicateSelectedElements = useLayoutEditorStore((s) => s.duplicateSelectedElements);
+  const copySelectedElements = useLayoutEditorStore((s) => s.copySelectedElements);
+  const cutSelectedElements = useLayoutEditorStore((s) => s.cutSelectedElements);
+  const pasteElements = useLayoutEditorStore((s) => s.pasteElements);
   const elements = useLayoutEditorStore((s) => s.elements);
   const undo = useLayoutEditorStore((s) => s.undo);
   const redo = useLayoutEditorStore((s) => s.redo);
@@ -57,39 +61,74 @@ export function LayoutEditor() {
         return;
       }
 
+      // Cmd/Ctrl+D → duplicate
+      if ((e.metaKey || e.ctrlKey) && e.key === "d") {
+        e.preventDefault();
+        duplicateSelectedElements();
+        return;
+      }
+
+      // Cmd/Ctrl+C → copy
+      if ((e.metaKey || e.ctrlKey) && e.key === "c" && !isInput) {
+        e.preventDefault();
+        copySelectedElements();
+        return;
+      }
+
+      // Cmd/Ctrl+X → cut
+      if ((e.metaKey || e.ctrlKey) && e.key === "x" && !isInput) {
+        e.preventDefault();
+        cutSelectedElements();
+        return;
+      }
+
+      // Cmd/Ctrl+V → paste
+      if ((e.metaKey || e.ctrlKey) && e.key === "v" && !isInput) {
+        e.preventDefault();
+        pasteElements();
+        return;
+      }
+
+      // Cmd/Ctrl+A → select all
+      if ((e.metaKey || e.ctrlKey) && e.key === "a" && !isInput) {
+        e.preventDefault();
+        const store = useLayoutEditorStore.getState();
+        store.selectElements(store.elements.map((el) => el.id));
+        return;
+      }
+
       if (isInput) return;
 
       // Escape → deselect
       if (e.key === "Escape") {
-        selectElement(null);
+        clearSelection();
         return;
       }
 
       // Delete/Backspace → delete selected
       if (
         (e.key === "Delete" || e.key === "Backspace") &&
-        selectedElementId
+        selectedElementIds.size > 0
       ) {
         e.preventDefault();
-        deleteElement(selectedElementId);
+        deleteSelectedElements();
         return;
       }
 
-      // Arrow keys → nudge
-      if (selectedElementId && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+      // Arrow keys → nudge selected
+      if (selectedElementIds.size > 0 && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
         e.preventDefault();
-        const el = elements.find((el) => el.id === selectedElementId);
-        if (!el) return;
         const step = e.shiftKey ? 10 : 1;
-        let { x, y } = el;
-        if (e.key === "ArrowUp") y -= step;
-        if (e.key === "ArrowDown") y += step;
-        if (e.key === "ArrowLeft") x -= step;
-        if (e.key === "ArrowRight") x += step;
-        moveElement(selectedElementId, x, y);
+        let dx = 0;
+        let dy = 0;
+        if (e.key === "ArrowUp") dy = -step;
+        if (e.key === "ArrowDown") dy = step;
+        if (e.key === "ArrowLeft") dx = -step;
+        if (e.key === "ArrowRight") dx = step;
+        moveSelectedElements(dx, dy);
       }
     },
-    [isDirty, saveElements, selectElement, selectedElementId, deleteElement, moveElement, elements, undo, redo]
+    [isDirty, saveElements, clearSelection, selectedElementIds, deleteSelectedElements, moveSelectedElements, elements, undo, redo, duplicateSelectedElements, copySelectedElements, cutSelectedElements, pasteElements]
   );
 
   useEffect(() => {

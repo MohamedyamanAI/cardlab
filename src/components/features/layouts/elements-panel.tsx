@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils/utils";
 
 export function ElementsPanel() {
   const elements = useLayoutEditorStore((s) => s.elements);
-  const selectedElementId = useLayoutEditorStore((s) => s.selectedElementId);
+  const selectedElementIds = useLayoutEditorStore((s) => s.selectedElementIds);
   const addElement = useLayoutEditorStore((s) => s.addElement);
   const selectElement = useLayoutEditorStore((s) => s.selectElement);
   const deleteElement = useLayoutEditorStore((s) => s.deleteElement);
@@ -73,11 +73,11 @@ export function ElementsPanel() {
                 key={el.id}
                 className={cn(
                   "group flex cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs transition-colors",
-                  selectedElementId === el.id
+                  selectedElementIds.has(el.id)
                     ? "bg-accent text-accent-foreground"
                     : "hover:bg-muted"
                 )}
-                onClick={() => selectElement(el.id)}
+                onClick={(e) => selectElement(el.id, e.shiftKey)}
               >
                 {el.type === "text" && <IconTypography className="size-3.5 shrink-0" />}
                 {el.type === "image" && <IconPhoto className="size-3.5 shrink-0" />}

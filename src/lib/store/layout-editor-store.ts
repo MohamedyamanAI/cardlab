@@ -13,9 +13,12 @@ interface LayoutEditorState {
   currentLayoutId: string | null;
   elements: CanvasElement[];
   isDirty: boolean;
-  selectedElementId: string | null;
+  selectedElementIds: Set<string>;
   previewCardIndex: number; // -1 = no preview
   isSaving: boolean;
+
+  // Clipboard (internal, not persisted)
+  clipboard: CanvasElement[];
 
   // Undo/redo
   history: CanvasElement[][];
@@ -36,14 +39,30 @@ interface LayoutEditorState {
   }) => Promise<Layout | null>;
   deleteLayout: (layoutId: string) => Promise<void>;
 
+  // Selection
+  selectElement: (id: string | null, additive?: boolean) => void;
+  selectElements: (ids: string[]) => void;
+  clearSelection: () => void;
+
   // Element mutations
   addElement: (element: CanvasElement) => void;
   updateElement: (id: string, partial: Partial<CanvasElement>) => void;
   deleteElement: (id: string) => void;
-  selectElement: (id: string | null) => void;
+  deleteSelectedElements: () => void;
   moveElement: (id: string, x: number, y: number) => void;
+  moveSelectedElements: (dx: number, dy: number) => void;
   resizeElement: (id: string, w: number, h: number) => void;
   reorderElement: (id: string, direction: "up" | "down") => void;
+
+  // Clipboard operations
+  duplicateSelectedElements: () => void;
+  copySelectedElements: () => void;
+  cutSelectedElements: () => void;
+  pasteElements: () => void;
+
+  // Alignment & distribution
+  alignElements: (axis: "left" | "center-h" | "right" | "top" | "center-v" | "bottom") => void;
+  distributeElements: (axis: "horizontal" | "vertical") => void;
 
   // Persistence
   saveElements: () => Promise<void>;
@@ -76,9 +95,10 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
   currentLayoutId: null,
   elements: [],
   isDirty: false,
-  selectedElementId: null,
+  selectedElementIds: new Set<string>(),
   previewCardIndex: -1,
   isSaving: false,
+  clipboard: [],
   history: [],
   future: [],
 
@@ -124,7 +144,7 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
         currentLayoutId: null,
         elements: [],
         isDirty: false,
-        selectedElementId: null,
+        selectedElementIds: new Set(),
         history: [],
         future: [],
       });
@@ -142,7 +162,7 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
       currentLayoutId: layoutId,
       elements,
       isDirty: false,
-      selectedElementId: null,
+      selectedElementIds: new Set(),
       history: [],
       future: [],
     });
@@ -167,12 +187,40 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
           state.currentLayoutId === layoutId ? null : state.currentLayoutId,
         elements: state.currentLayoutId === layoutId ? [] : state.elements,
         isDirty: state.currentLayoutId === layoutId ? false : state.isDirty,
-        selectedElementId:
-          state.currentLayoutId === layoutId ? null : state.selectedElementId,
+        selectedElementIds:
+          state.currentLayoutId === layoutId ? new Set() : state.selectedElementIds,
       }));
     } else {
       toast.error(result.error);
     }
+  },
+
+  // Selection
+  selectElement: (id, additive) => {
+    if (id === null) {
+      set({ selectedElementIds: new Set() });
+      return;
+    }
+    if (additive) {
+      const current = get().selectedElementIds;
+      const next = new Set(current);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      set({ selectedElementIds: next });
+    } else {
+      set({ selectedElementIds: new Set([id]) });
+    }
+  },
+
+  selectElements: (ids) => {
+    set({ selectedElementIds: new Set(ids) });
+  },
+
+  clearSelection: () => {
+    set({ selectedElementIds: new Set() });
   },
 
   addElement: (element) => {
@@ -184,7 +232,7 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
       ...pushHistory(state),
       elements: [...state.elements, { ...element, z_index: maxZ + 1 }],
       isDirty: true,
-      selectedElementId: element.id,
+      selectedElementIds: new Set([element.id]),
     }));
   },
 
@@ -199,17 +247,27 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
   },
 
   deleteElement: (id) => {
-    set((state) => ({
-      ...pushHistory(state),
-      elements: state.elements.filter((el) => el.id !== id),
-      isDirty: true,
-      selectedElementId:
-        state.selectedElementId === id ? null : state.selectedElementId,
-    }));
+    set((state) => {
+      const next = new Set(state.selectedElementIds);
+      next.delete(id);
+      return {
+        ...pushHistory(state),
+        elements: state.elements.filter((el) => el.id !== id),
+        isDirty: true,
+        selectedElementIds: next,
+      };
+    });
   },
 
-  selectElement: (id) => {
-    set({ selectedElementId: id });
+  deleteSelectedElements: () => {
+    const { selectedElementIds } = get();
+    if (selectedElementIds.size === 0) return;
+    set((state) => ({
+      ...pushHistory(state),
+      elements: state.elements.filter((el) => !selectedElementIds.has(el.id)),
+      isDirty: true,
+      selectedElementIds: new Set(),
+    }));
   },
 
   moveElement: (id, x, y) => {
@@ -217,6 +275,20 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
       ...pushHistory(state),
       elements: state.elements.map((el) =>
         el.id === id ? { ...el, x: Math.round(x), y: Math.round(y) } : el
+      ),
+      isDirty: true,
+    }));
+  },
+
+  moveSelectedElements: (dx, dy) => {
+    const { selectedElementIds } = get();
+    if (selectedElementIds.size === 0) return;
+    set((state) => ({
+      ...pushHistory(state),
+      elements: state.elements.map((el) =>
+        selectedElementIds.has(el.id)
+          ? { ...el, x: Math.round(el.x + dx), y: Math.round(el.y + dy) }
+          : el
       ),
       isDirty: true,
     }));
@@ -257,6 +329,163 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
     }));
   },
 
+  // Clipboard operations
+  duplicateSelectedElements: () => {
+    const { selectedElementIds, elements } = get();
+    if (selectedElementIds.size === 0) return;
+    const selected = elements.filter((el) => selectedElementIds.has(el.id));
+    const maxZ = elements.reduce((max, el) => Math.max(max, el.z_index), -1);
+    const duplicated = selected.map((el, i) => ({
+      ...el,
+      id: crypto.randomUUID(),
+      x: el.x + 20,
+      y: el.y + 20,
+      z_index: maxZ + 1 + i,
+    }));
+    set((state) => ({
+      ...pushHistory(state),
+      elements: [...state.elements, ...duplicated],
+      isDirty: true,
+      selectedElementIds: new Set(duplicated.map((el) => el.id)),
+    }));
+  },
+
+  copySelectedElements: () => {
+    const { selectedElementIds, elements } = get();
+    if (selectedElementIds.size === 0) return;
+    const selected = elements.filter((el) => selectedElementIds.has(el.id));
+    set({ clipboard: selected });
+  },
+
+  cutSelectedElements: () => {
+    const { selectedElementIds, elements } = get();
+    if (selectedElementIds.size === 0) return;
+    const selected = elements.filter((el) => selectedElementIds.has(el.id));
+    set((state) => ({
+      ...pushHistory(state),
+      clipboard: selected,
+      elements: state.elements.filter((el) => !selectedElementIds.has(el.id)),
+      isDirty: true,
+      selectedElementIds: new Set(),
+    }));
+  },
+
+  pasteElements: () => {
+    const { clipboard, elements } = get();
+    if (clipboard.length === 0) return;
+    const maxZ = elements.reduce((max, el) => Math.max(max, el.z_index), -1);
+    const pasted = clipboard.map((el, i) => ({
+      ...el,
+      id: crypto.randomUUID(),
+      x: el.x + 20,
+      y: el.y + 20,
+      z_index: maxZ + 1 + i,
+    }));
+    set((state) => ({
+      ...pushHistory(state),
+      elements: [...state.elements, ...pasted],
+      isDirty: true,
+      selectedElementIds: new Set(pasted.map((el) => el.id)),
+    }));
+  },
+
+  // Alignment & distribution
+  alignElements: (axis) => {
+    const { selectedElementIds, elements } = get();
+    if (selectedElementIds.size < 2) return;
+    const selected = elements.filter((el) => selectedElementIds.has(el.id));
+
+    let updater: (el: CanvasElement) => CanvasElement;
+
+    switch (axis) {
+      case "left": {
+        const minX = Math.min(...selected.map((el) => el.x));
+        updater = (el) => ({ ...el, x: minX });
+        break;
+      }
+      case "center-h": {
+        const centers = selected.map((el) => el.x + el.width / 2);
+        const avg = centers.reduce((a, b) => a + b, 0) / centers.length;
+        updater = (el) => ({ ...el, x: Math.round(avg - el.width / 2) });
+        break;
+      }
+      case "right": {
+        const maxRight = Math.max(...selected.map((el) => el.x + el.width));
+        updater = (el) => ({ ...el, x: maxRight - el.width });
+        break;
+      }
+      case "top": {
+        const minY = Math.min(...selected.map((el) => el.y));
+        updater = (el) => ({ ...el, y: minY });
+        break;
+      }
+      case "center-v": {
+        const centers = selected.map((el) => el.y + el.height / 2);
+        const avg = centers.reduce((a, b) => a + b, 0) / centers.length;
+        updater = (el) => ({ ...el, y: Math.round(avg - el.height / 2) });
+        break;
+      }
+      case "bottom": {
+        const maxBottom = Math.max(...selected.map((el) => el.y + el.height));
+        updater = (el) => ({ ...el, y: maxBottom - el.height });
+        break;
+      }
+    }
+
+    set((state) => ({
+      ...pushHistory(state),
+      elements: state.elements.map((el) =>
+        selectedElementIds.has(el.id) ? updater(el) : el
+      ),
+      isDirty: true,
+    }));
+  },
+
+  distributeElements: (axis) => {
+    const { selectedElementIds, elements } = get();
+    if (selectedElementIds.size < 3) return;
+    const selected = elements
+      .filter((el) => selectedElementIds.has(el.id))
+      .sort((a, b) =>
+        axis === "horizontal" ? a.x - b.x : a.y - b.y
+      );
+
+    const idToPos = new Map<string, { x: number; y: number }>();
+
+    if (axis === "horizontal") {
+      const first = selected[0];
+      const last = selected[selected.length - 1];
+      const totalSpan = (last.x + last.width) - first.x;
+      const totalElemWidth = selected.reduce((sum, el) => sum + el.width, 0);
+      const gap = (totalSpan - totalElemWidth) / (selected.length - 1);
+      let cursor = first.x;
+      for (const el of selected) {
+        idToPos.set(el.id, { x: Math.round(cursor), y: el.y });
+        cursor += el.width + gap;
+      }
+    } else {
+      const first = selected[0];
+      const last = selected[selected.length - 1];
+      const totalSpan = (last.y + last.height) - first.y;
+      const totalElemHeight = selected.reduce((sum, el) => sum + el.height, 0);
+      const gap = (totalSpan - totalElemHeight) / (selected.length - 1);
+      let cursor = first.y;
+      for (const el of selected) {
+        idToPos.set(el.id, { x: el.x, y: Math.round(cursor) });
+        cursor += el.height + gap;
+      }
+    }
+
+    set((state) => ({
+      ...pushHistory(state),
+      elements: state.elements.map((el) => {
+        const pos = idToPos.get(el.id);
+        return pos ? { ...el, ...pos } : el;
+      }),
+      isDirty: true,
+    }));
+  },
+
   saveElements: async () => {
     const { currentLayoutId, elements } = get();
     if (!currentLayoutId) return;
@@ -268,7 +497,6 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
     );
 
     if (result.success) {
-      // Update the layout in our local list so selectLayout stays in sync
       set((state) => ({
         layouts: state.layouts.map((l) =>
           l.id === currentLayoutId
