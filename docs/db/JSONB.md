@@ -186,40 +186,75 @@ const options = Array.isArray(property.options)
 
 ## 3. `layouts.canvas_elements`
 
-Defines the visual blueprint for rendering a card. **Not yet actively used** — reserved for the future layout editor/renderer.
+Defines the visual blueprint for rendering a card. Used by the layout editor (`src/components/features/layouts/`) and the card preview/export pipeline.
+
+Types defined in `src/lib/types/canvas-elements.ts`. Elements created via `src/lib/utils/canvas-element-factory.ts`.
 
 ### Structure
 
-An array of element objects, each describing a visual element bound to a property:
+An array of element objects. Three element types: `text`, `image`, `shape`. All share base fields, with type-specific fields on top.
+
+### Base fields (all elements)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | UUID |
+| `type` | `"text" \| "image" \| "shape"` | Element kind |
+| `x`, `y` | `number` | Position in pixels |
+| `width`, `height` | `number` | Dimensions |
+| `z_index` | `number` | Stacking order |
+| `bind_to` | `string?` | Property slug — data-binds element to a card property |
+| `opacity` | `number?` | 0–1, default 1 |
+| `rotation` | `number?` | Degrees |
+| `locked`, `hidden` | `boolean?` | UI state flags |
+| `box_shadow` | `object?` | `{ color, offset_x, offset_y, blur, spread }` |
+
+### Type-specific fields
+
+**Text:** `static_text`, `font_size`, `font_weight` (`normal`/`bold`), `text_align`, `vertical_align`, `color`, `overflow` (`wrap`/`truncate`/`visible`), `font_family`, `line_height`, `letter_spacing`, `text_shadow`, `rich_text` (TipTap JSON)
+
+**Image:** `static_src`, `object_fit` (`cover`/`contain`/`fill`), `border_radius`
+
+**Shape:** `shape_type` (`rectangle`/`ellipse`/`line`), `fill`, `fill_type` (`solid`/`linear`/`radial`), `gradient` (`{ type, angle?, stops: [{ color, position }] }`), `stroke`, `stroke_width`, `border_radius`
+
+### Example
 
 ```json
 [
   {
-    "type": "text",
-    "bind_to": "name",
-    "x": 10,
-    "y": 10
+    "id": "elem-1",
+    "type": "shape",
+    "x": 0, "y": 0, "width": 825, "height": 1125,
+    "z_index": 0,
+    "shape_type": "rectangle",
+    "fill_type": "linear",
+    "gradient": {
+      "type": "linear", "angle": 180,
+      "stops": [{ "color": "#1e3c72", "position": 0 }, { "color": "#2a5298", "position": 100 }]
+    },
+    "border_radius": 24
   },
   {
+    "id": "elem-2",
     "type": "image",
+    "x": 50, "y": 50, "width": 725, "height": 400,
+    "z_index": 1,
     "bind_to": "artwork",
-    "x": 0,
-    "y": 50,
-    "width": 300,
-    "height": 200
+    "object_fit": "cover",
+    "border_radius": 12
+  },
+  {
+    "id": "elem-3",
+    "type": "text",
+    "x": 50, "y": 480, "width": 725, "height": 60,
+    "z_index": 2,
+    "bind_to": "name",
+    "font_size": 36, "font_weight": "bold",
+    "text_align": "center", "vertical_align": "middle",
+    "color": "#ffffff", "overflow": "wrap"
   }
 ]
 ```
-
-### Element fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `type` | `string` | Element kind: `"text"`, `"image"`, `"shape"`, etc. |
-| `bind_to` | `string` | Property slug this element displays |
-| `x` | `number` | Horizontal position |
-| `y` | `number` | Vertical position |
-| (varies) | varies | Type-specific fields like `width`, `height`, `font_size` |
 
 ### Default
 
@@ -229,41 +264,71 @@ Empty array: `'[]'::jsonb`
 
 ## 4. `layouts.condition`
 
-Conditional logic for selecting which layout applies to a card. **Not yet implemented** — the schema reserves the column for future use.
+Conditional logic for selecting which layout applies to a card. The condition engine (`src/lib/utils/condition-engine.ts`) evaluates conditions against card data. First matching layout wins; layouts with `null` condition serve as the default fallback.
+
+Types defined in `src/lib/types/conditions.ts`.
 
 ### Structure
 
-```json
-null
+```typescript
+interface LayoutCondition {
+  field: string;           // property slug
+  operator: ComparisonOperator;
+  value?: string | number | boolean | null;
+}
+
+type ComparisonOperator =
+  | "eq" | "neq" | "gt" | "gte" | "lt" | "lte"
+  | "is_empty" | "is_not_empty";
 ```
 
-Future planned shape (not finalized):
+### Examples
+
 ```json
-{
-  "field": "rarity",
-  "operator": "eq",
-  "value": "Legendary"
-}
+{ "field": "hp", "operator": "gte", "value": 100 }
 ```
+
+```json
+{ "field": "rarity", "operator": "eq", "value": "legendary" }
+```
+
+```json
+{ "field": "flavor_text", "operator": "is_not_empty" }
+```
+
+### Operator support by property type
+
+| Property type | Supported operators |
+|---------------|-------------------|
+| `text`, `select`, `color` | eq, neq, is_empty, is_not_empty |
+| `number` | eq, neq, gt, gte, lt, lte, is_empty, is_not_empty |
+| `boolean` | eq, neq |
+| `image` | is_empty, is_not_empty |
+
+### Default
+
+`null` — layout applies to all cards (default/fallback).
 
 ---
 
 ## 5. `ai_chat_messages.tool_calls`
 
-Stores AI assistant tool invocations in OpenAI function-calling format.
+Stores completed AI tool invocations from the Vercel AI SDK. Persisted on `onFinish` in the ideator client, reconstructed on chat reload.
 
 ### Structure
 
-An array of tool call objects:
+An array of tool result objects:
 
 ```json
 [
   {
-    "id": "call_abc123",
-    "type": "function",
-    "function": {
-      "name": "search_cards",
-      "arguments": "{\"query\": \"legendary creatures\"}"
+    "toolName": "create_document",
+    "toolCallId": "call-abc123",
+    "output": {
+      "success": true,
+      "documentId": "doc-789",
+      "title": "Spell Mechanics",
+      "type": "rules"
     }
   }
 ]
@@ -273,23 +338,38 @@ An array of tool call objects:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `id` | `string` | Unique call identifier |
-| `type` | `string` | Always `"function"` |
-| `function.name` | `string` | Name of the called function |
-| `function.arguments` | `string` | JSON-encoded arguments (string, not object) |
+| `toolName` | `string` | Name of the tool (e.g. `create_document`, `google_search`) |
+| `toolCallId` | `string` | Unique call identifier from the AI SDK |
+| `output` | `object` | The tool's return value |
+
+### How it's saved (onFinish)
+
+```typescript
+const toolResults = message.parts
+  .filter(isToolUIPart)
+  .filter((p) => p.state === "output-available" && p.output)
+  .map((p) => ({ toolName: getToolName(p), toolCallId: p.toolCallId, output: p.output }));
+```
+
+### How it's reconstructed (chat reload)
+
+```typescript
+for (const call of msg.tool_calls) {
+  parts.push({
+    type: `tool-${call.toolName}`,   // e.g. "tool-create_document"
+    toolCallId: call.toolCallId,
+    state: "output-available",
+    input: {},
+    output: call.output,
+  });
+}
+```
+
+The `type: "tool-{name}"` format is required by the AI SDK's `isToolUIPart()` / `getToolName()` helpers.
 
 ### Default
 
 `null` — most messages have no tool calls.
-
-### How it's stored
-
-```typescript
-// Repository: src/lib/repository/chats.ts
-{
-  tool_calls: params.toolCalls ?? null
-}
-```
 
 ---
 

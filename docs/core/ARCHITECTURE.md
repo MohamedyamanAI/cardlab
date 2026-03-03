@@ -93,7 +93,7 @@ export async function getCardsByProject(
     .select("*")
     .eq("project_id", projectId)
     .order("created_at", { ascending: true });
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "getCardsByProject", { projectId });
   return data as Card[];
 }
 ```
@@ -206,4 +206,17 @@ Defense in depth: middleware handles route-level gating, server actions verify `
 - **shadcn/ui** (Radix primitives) in `src/components/ui/`
 - **Hugeicons** for icons
 - **Aceternity UI** and **Magic UI** for landing page effects
-- Zod schemas in `src/lib/validations/` for input validation in server actions
+
+---
+
+## 4. Adding a New Entity
+
+Checklist for adding a new domain entity (e.g., a new table) to the three-layer architecture:
+
+1. **Migration** — `supabase/migrations/` SQL file. Add RLS policies scoped to `auth.uid()`.
+2. **Types** — Run `supabase gen types` to regenerate `database.types.ts`. Add type alias in `src/lib/types.ts`.
+3. **Validation** — Create `src/lib/validations/{entity}.ts` with Zod schemas for create/update inputs.
+4. **Repository** — Create `src/lib/repository/{entity}.ts`. Every function takes `SupabaseClient` as first arg. Use `sanitizeError()` for all thrown errors.
+5. **Actions** — Create `src/lib/actions/{entity}.ts`. Every action: validate with Zod, check `getUser()`, call `verifyProjectOwnership()` (from `auth-utils.ts`), delegate to repository, return `ActionResult<T>`.
+6. **Store** (if needed) — Add methods to the relevant Zustand store. Follow the optimistic update pattern: save prev state, apply optimistically, call action, rollback on failure.
+7. **UI** — Add feature components in `src/components/features/{entity}/`.

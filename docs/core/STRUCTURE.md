@@ -145,6 +145,7 @@ Organised by domain, with cross-cutting layers at the top:
 ```
 lib/
 ├── actions/        → Server Actions (mutations for all domains)
+│   ├── auth-utils.ts → Shared verifyProjectOwnership helper
 │   ├── cards.ts, decks.ts, projects.ts, properties.ts
 │   ├── layouts.ts, media.ts, documents.ts, chats.ts
 │   ├── image.ts    → AI image generation action
@@ -169,7 +170,8 @@ lib/
 │   └── import.ts               → Import config types
 ├── types.ts        → Top-level shared types (ActionResult, etc.)
 ├── validations/    → Zod schemas for input validation
-│   ├── cards.ts, properties.ts, documents.ts, chats.ts
+│   ├── cards.ts, properties.ts, layouts.ts, decks.ts, projects.ts
+│   ├── documents.ts, chats.ts
 ├── supabase/       → Database client config
 │   ├── server.ts, client.ts, proxy.ts
 │   └── database.types.ts       → Auto-generated DB types
@@ -189,38 +191,6 @@ lib/
 │       ├── download.ts          → Download helpers
 │       └── index.ts             → Export barrel
 └── client/         → Browser-only utilities (empty)
-```
-
-### Data Flow
-
-```
-Page Routes / API Routes  (app/)
-  ↓ imports actions for mutations
-  ↓ imports repository for reads
-         ↓                ↓
-  lib/actions/      lib/repository/
-  (mutations)       (queries)
-         ↓                ↓
-         └────────────────┘
-                  ↓
-           lib/supabase/
-           (DB clients)
-```
-
-- **Actions** call repository functions — they never construct Supabase queries directly
-- **Repository** is the only code that touches the database query builder
-- **Types** (`lib/types/`) contain shared type definitions — no DB access
-- **Intelligence** (`lib/intelligence/`) contains AI agent logic — uses actions for DB access
-
-### Repository Functions
-
-Every repository function receives `SupabaseClient<Database>` as its first parameter (dependency injection):
-
-```typescript
-export async function getGamesByUser(
-  supabase: SupabaseClient<Database>,
-  userId: string
-): Promise<Game[]> { ... }
 ```
 
 ## Tests
