@@ -5,6 +5,7 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ArrowLeft01Icon,
+  Clock01Icon,
   Image02Icon,
   Loading03Icon,
   TextBoldIcon,
@@ -45,6 +46,7 @@ type DocumentEditorProps = {
   projects: Project[];
   onUpdated: (doc: Document) => void;
   onBack: () => void;
+  onOpenHistory?: () => void;
 };
 
 type ToolbarAction = {
@@ -133,6 +135,7 @@ export function DocumentEditor({
   projects,
   onUpdated,
   onBack,
+  onOpenHistory,
 }: DocumentEditorProps) {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
   const [saving, setSaving] = useState(false);
@@ -362,6 +365,12 @@ export function DocumentEditor({
             size={14}
             className="animate-spin text-muted-foreground"
           />
+        )}
+        {onOpenHistory && (
+          <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-xs" onClick={onOpenHistory}>
+            <HugeiconsIcon icon={Clock01Icon} size={14} />
+            History
+          </Button>
         )}
       </div>
 

@@ -10,13 +10,19 @@ import {
 import { useCardsStore } from "@/lib/store/cards-store";
 import { buildColumns } from "./columns";
 import { AddColumnPopover } from "./add-column-popover";
+import { RowContextMenu } from "./row-context-menu";
+import type { Card } from "@/lib/types";
 
 function isPrintableKey(e: React.KeyboardEvent): boolean {
   if (e.ctrlKey || e.metaKey || e.altKey) return false;
   return e.key.length === 1;
 }
 
-export function CardsGrid() {
+interface CardsGridProps {
+  onViewCardHistory?: (card: Card) => void;
+}
+
+export function CardsGrid({ onViewCardHistory }: CardsGridProps) {
   const {
     properties,
     filteredCards,
@@ -324,44 +330,58 @@ export function CardsGrid() {
           ))}
         </thead>
         <tbody>
-          {table.getRowModel().rows.map((row, rowIndex) => (
-            <tr
-              key={row.id}
-              className="border-b border-border/50 hover:bg-muted/20"
-              data-selected={row.getIsSelected() || undefined}
-            >
-              {row.getVisibleCells().map((cell, cellIndex) => {
-                const propColIndex = cellIndex - 1;
-                const isFocused =
-                  focusedCell !== null &&
-                  focusedCell.row === rowIndex &&
-                  focusedCell.col === propColIndex;
+          {table.getRowModel().rows.map((row, rowIndex) => {
+            const rowContent = (
+              <tr
+                key={row.id}
+                className="border-b border-border/50 hover:bg-muted/20"
+                data-selected={row.getIsSelected() || undefined}
+              >
+                {row.getVisibleCells().map((cell, cellIndex) => {
+                  const propColIndex = cellIndex - 1;
+                  const isFocused =
+                    focusedCell !== null &&
+                    focusedCell.row === rowIndex &&
+                    focusedCell.col === propColIndex;
 
-                return (
-                  <td
-                    key={cell.id}
-                    className={`py-1 text-sm ${
-                      propColIndex >= 0 ? "px-1" : "px-3"
-                    } ${isFocused ? "outline outline-2 -outline-offset-2 outline-primary" : ""}`}
-                    style={{ width: cell.column.getSize() }}
-                    onClick={
-                      propColIndex >= 0
-                        ? () => handleCellClick(rowIndex, propColIndex)
-                        : undefined
-                    }
-                    onDoubleClick={
-                      propColIndex >= 0
-                        ? () => handleDoubleClick(rowIndex, propColIndex)
-                        : undefined
-                    }
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                );
-              })}
-              <td className="w-10" />
-            </tr>
-          ))}
+                  return (
+                    <td
+                      key={cell.id}
+                      className={`py-1 text-sm ${
+                        propColIndex >= 0 ? "px-1" : "px-3"
+                      } ${isFocused ? "outline outline-2 -outline-offset-2 outline-primary" : ""}`}
+                      style={{ width: cell.column.getSize() }}
+                      onClick={
+                        propColIndex >= 0
+                          ? () => handleCellClick(rowIndex, propColIndex)
+                          : undefined
+                      }
+                      onDoubleClick={
+                        propColIndex >= 0
+                          ? () => handleDoubleClick(rowIndex, propColIndex)
+                          : undefined
+                      }
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  );
+                })}
+                <td className="w-10" />
+              </tr>
+            );
+
+            return onViewCardHistory ? (
+              <RowContextMenu
+                key={row.id}
+                card={cards[rowIndex]}
+                onViewHistory={onViewCardHistory}
+              >
+                {rowContent}
+              </RowContextMenu>
+            ) : (
+              rowContent
+            );
+          })}
         </tbody>
       </table>
     </div>

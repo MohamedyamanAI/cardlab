@@ -42,6 +42,9 @@ interface CardsState {
   createDeck: (input: { name: string; description?: string }) => Promise<Deck | null>;
   selectDeck: (deckId: string | null) => Promise<void>;
   updateDeckStatus: (deckId: string, status: StatusEnum) => Promise<void>;
+  updateDeck: (deckId: string, input: { name?: string; description?: string }) => Promise<void>;
+  deleteDeck: (deckId: string) => Promise<void>;
+  updateDeckInStore: (deck: Deck) => void;
 
   // Computed
   filteredCards: () => Card[];
@@ -78,6 +81,9 @@ interface CardsState {
   updateCardStatus: (cardId: string, status: StatusEnum) => Promise<void>;
   deleteSelectedCards: () => Promise<void>;
   duplicateSelectedCards: () => Promise<void>;
+
+  // Sync helpers
+  updateCardInStore: (card: Card) => void;
 
   // Selection
   toggleCardSelection: (cardId: string) => void;
@@ -197,6 +203,43 @@ export const useCardsStore = create<CardsState>((set, get) => ({
       set({ decks: prevDecks });
       toast.error(result.error);
     }
+  },
+
+  updateDeck: async (deckId, input) => {
+    const prevDecks = get().decks;
+    set((state) => ({
+      decks: state.decks.map((d) =>
+        d.id === deckId ? { ...d, ...input } : d
+      ),
+    }));
+
+    const result = await deckActions.updateDeck(deckId, input);
+    if (!result.success) {
+      set({ decks: prevDecks });
+      toast.error(result.error);
+    }
+  },
+
+  deleteDeck: async (deckId) => {
+    const prevDecks = get().decks;
+    const prevSelectedDeckId = get().selectedDeckId;
+    set((state) => ({
+      decks: state.decks.filter((d) => d.id !== deckId),
+      selectedDeckId: state.selectedDeckId === deckId ? null : state.selectedDeckId,
+      deckCardQuantities: state.selectedDeckId === deckId ? null : state.deckCardQuantities,
+    }));
+
+    const result = await deckActions.deleteDeck(deckId);
+    if (!result.success) {
+      set({ decks: prevDecks, selectedDeckId: prevSelectedDeckId });
+      toast.error(result.error);
+    }
+  },
+
+  updateDeckInStore: (deck) => {
+    set((state) => ({
+      decks: state.decks.map((d) => (d.id === deck.id ? deck : d)),
+    }));
   },
 
   selectDeck: async (deckId) => {
@@ -416,6 +459,13 @@ export const useCardsStore = create<CardsState>((set, get) => ({
     } else {
       toast.error(result.error);
     }
+  },
+
+  // Sync helpers
+  updateCardInStore: (card) => {
+    set((state) => ({
+      cards: state.cards.map((c) => (c.id === card.id ? card : c)),
+    }));
   },
 
   // Selection

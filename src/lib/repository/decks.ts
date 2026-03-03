@@ -47,6 +47,30 @@ export async function updateDeckStatus(
   return deck as Deck;
 }
 
+export async function updateDeck(
+  supabase: SupabaseClient,
+  deckId: string,
+  input: { name?: string; description?: string }
+): Promise<Deck> {
+  const { data, error } = await supabase
+    .from("decks")
+    .update({ ...input, updated_at: new Date().toISOString() })
+    .eq("id", deckId)
+    .select()
+    .single();
+
+  if (error) throw sanitizeError(error, "updateDeck", { deckId });
+  return data as Deck;
+}
+
+export async function deleteDeck(
+  supabase: SupabaseClient,
+  deckId: string
+): Promise<void> {
+  const { error } = await supabase.from("decks").delete().eq("id", deckId);
+  if (error) throw sanitizeError(error, "deleteDeck", { deckId });
+}
+
 export async function getDeckCardIds(
   supabase: SupabaseClient,
   deckId: string

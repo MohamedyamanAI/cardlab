@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import * as decksRepo from "@/lib/repository/decks";
 import { verifyProjectOwnership } from "@/lib/actions/auth-utils";
-import { createDeckSchema, updateDeckStatusSchema } from "@/lib/validations/decks";
+import { createDeckSchema, updateDeckStatusSchema, updateDeckSchema } from "@/lib/validations/decks";
 import * as versionsRepo from "@/lib/repository/versions";
 import type { Deck, ActionResult, StatusEnum } from "@/lib/types";
 
@@ -99,6 +99,73 @@ export async function updateDeckStatus(
     return { success: true, data: updated };
   } catch {
     return { success: false, error: "Failed to update deck status" };
+  }
+}
+
+export async function updateDeck(
+  deckId: string,
+  input: { name?: string; description?: string }
+): Promise<ActionResult<Deck>> {
+  const parsed = updateDeckSchema.safeParse({ deck_id: deckId, ...input });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Unauthorized" };
+
+  try {
+    const { data: deck, error: fetchError } = await supabase
+      .from("decks")
+      .select("*")
+      .eq("id", deckId)
+      .single();
+
+    if (fetchError || !deck) return { success: false, error: "Deck not found" };
+
+    if (!(await verifyProjectOwnership(supabase, deck.project_id, user.id))) {
+      return { success: false, error: "Project not found" };
+    }
+
+    const updated = await decksRepo.updateDeck(supabase, deckId, {
+      name: parsed.data.name,
+      description: parsed.data.description,
+    });
+    return { success: true, data: updated };
+  } catch {
+    return { success: false, error: "Failed to update deck" };
+  }
+}
+
+export async function deleteDeck(
+  deckId: string
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Unauthorized" };
+
+  try {
+    const { data: deck, error: fetchError } = await supabase
+      .from("decks")
+      .select("*")
+      .eq("id", deckId)
+      .single();
+
+    if (fetchError || !deck) return { success: false, error: "Deck not found" };
+
+    if (!(await verifyProjectOwnership(supabase, deck.project_id, user.id))) {
+      return { success: false, error: "Project not found" };
+    }
+
+    await decksRepo.deleteDeck(supabase, deckId);
+    return { success: true, data: undefined };
+  } catch {
+    return { success: false, error: "Failed to delete deck" };
   }
 }
 

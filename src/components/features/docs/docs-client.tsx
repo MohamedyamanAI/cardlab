@@ -25,6 +25,7 @@ import {
 import { DocumentList } from "./document-list";
 import { DocumentCard } from "./document-card";
 import { DocumentEditor } from "./document-editor";
+import { DocumentVersionHistory } from "./document-version-history";
 import {
   createDocument,
   deleteDocument,
@@ -43,6 +44,7 @@ export function DocsClient({ initialDocuments, projects, initialSelectedId }: Do
   const [selectedId, setSelectedId] = useState<string | null>(initialSelectedId ?? null);
   const [typeFilters, setTypeFilters] = useState<Set<DocType>>(new Set());
   const [projectFilters, setProjectFilters] = useState<Set<string>>(new Set());
+  const [historyMode, setHistoryMode] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -94,6 +96,7 @@ export function DocsClient({ initialDocuments, projects, initialSelectedId }: Do
 
   const handleOpenDoc = useCallback((id: string) => {
     setSelectedId(id);
+    setHistoryMode(false);
   }, []);
 
   const handleBack = useCallback(() => {
@@ -122,13 +125,26 @@ export function DocsClient({ initialDocuments, projects, initialSelectedId }: Do
           </ResizablePanel>
           <ResizableHandle />
           <ResizablePanel defaultSize="80%">
-            <DocumentEditor
-              key={selectedDoc.id}
-              document={selectedDoc}
-              projects={projects}
-              onUpdated={handleDocUpdated}
-              onBack={handleBack}
-            />
+            {historyMode ? (
+              <DocumentVersionHistory
+                key={`history-${selectedDoc.id}`}
+                document={selectedDoc}
+                onRestored={(doc) => {
+                  handleDocUpdated(doc);
+                  setHistoryMode(false);
+                }}
+                onBack={() => setHistoryMode(false)}
+              />
+            ) : (
+              <DocumentEditor
+                key={selectedDoc.id}
+                document={selectedDoc}
+                projects={projects}
+                onUpdated={handleDocUpdated}
+                onBack={handleBack}
+                onOpenHistory={() => setHistoryMode(true)}
+              />
+            )}
           </ResizablePanel>
         </ResizablePanelGroup>
       ) : (

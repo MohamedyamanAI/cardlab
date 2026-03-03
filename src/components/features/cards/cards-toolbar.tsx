@@ -10,16 +10,19 @@ import {
   IconPlus,
   IconTrash,
   IconCopy,
-  IconLayoutSidebar,
+  IconEye,
   IconFileImport,
+  IconHistory,
 } from "@tabler/icons-react";
 
 interface CardsToolbarProps {
   previewOpen?: boolean;
   onTogglePreview?: () => void;
+  historyOpen?: boolean;
+  onToggleHistory?: () => void;
 }
 
-export function CardsToolbar({ previewOpen, onTogglePreview }: CardsToolbarProps) {
+export function CardsToolbar({ previewOpen, onTogglePreview, historyOpen, onToggleHistory }: CardsToolbarProps) {
   const {
     filteredCards,
     selectedCardIds,
@@ -84,14 +87,24 @@ export function CardsToolbar({ previewOpen, onTogglePreview }: CardsToolbarProps
           {cards.length} card{cards.length !== 1 ? "s" : ""}
           {selectionCount > 0 && ` \u00B7 ${selectionCount} selected`}
         </span>
+        {onToggleHistory && (
+          <Button
+            size="sm"
+            variant={historyOpen ? "secondary" : "outline"}
+            onClick={onToggleHistory}
+          >
+            <IconHistory size={14} className="mr-1.5" />
+            History
+          </Button>
+        )}
         {onTogglePreview && (
           <Button
             size="sm"
             variant={previewOpen ? "secondary" : "outline"}
             onClick={onTogglePreview}
-            title={previewOpen ? "Hide preview" : "Show preview"}
           >
-            <IconLayoutSidebar size={14} />
+            <IconEye size={14} className="mr-1.5" />
+            Preview
           </Button>
         )}
       </div>
