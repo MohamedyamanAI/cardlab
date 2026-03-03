@@ -9,3 +9,8 @@ export const createDeckSchema = z.object({
 export const deckIdSchema = z.object({
   deck_id: z.string().uuid(),
 });
+
+export const updateDeckStatusSchema = z.object({
+  deck_id: z.string().uuid(),
+  status: z.enum(["draft", "active", "archived"]),
+});

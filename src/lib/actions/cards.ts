@@ -8,8 +8,10 @@ import {
   updateCardDataSchema,
   bulkDeleteCardsSchema,
   duplicateCardsSchema,
+  updateCardStatusSchema,
 } from "@/lib/validations/cards";
-import type { Card, ActionResult } from "@/lib/types";
+import * as versionsRepo from "@/lib/repository/versions";
+import type { Card, ActionResult, StatusEnum } from "@/lib/types";
 
 export async function getCards(
   projectId: string
@@ -129,6 +131,41 @@ export async function deleteCards(
     return { success: true, data: undefined };
   } catch {
     return { success: false, error: "Failed to delete cards" };
+  }
+}
+
+export async function updateCardStatus(
+  cardId: string,
+  status: StatusEnum
+): Promise<ActionResult<Card>> {
+  const parsed = updateCardStatusSchema.safeParse({ card_id: cardId, status });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Unauthorized" };
+
+  try {
+    // Fetch current card to verify ownership and snapshot before status change
+    const card = await cardsRepo.getCard(supabase, cardId);
+    if (!(await verifyProjectOwnership(supabase, card.project_id, user.id))) {
+      return { success: false, error: "Project not found" };
+    }
+
+    // Snapshot current state before status change
+    await versionsRepo.createCardVersion(supabase, cardId, card, {
+      reason: "status_change",
+      createdBy: user.id,
+    });
+
+    const updated = await cardsRepo.updateCardStatus(supabase, cardId, parsed.data.status);
+    return { success: true, data: updated };
+  } catch {
+    return { success: false, error: "Failed to update card status" };
   }
 }
 

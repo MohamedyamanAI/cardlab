@@ -4,6 +4,37 @@ Decisions made during development and issues discovered. Newest first.
 
 ---
 
+## 2026-03-03: Versioning Strategy for Cards, Documents, and Decks
+
+**Context:** Need version history for cards, documents, and decks so users can view past states and roll back changes.
+
+**Approach considered:**
+1. **Per-entity snapshot tables** — separate `_versions` table per entity, main table stays current
+2. **Polymorphic versions table** — single `entity_versions` table with `entity_type` discriminator
+3. **Same-table versioning (SCD Type 2)** — add `version`/`is_current` columns to existing tables
+4. **JSONB diff storage** — store only deltas between versions
+
+**Decision:** Per-entity snapshot tables (`card_versions`, `document_versions`, `deck_versions`). Each stores a full snapshot of the entity state at that version.
+
+**Why:** Zero disruption to existing queries, actions, stores, and optimistic updates. Main tables remain the source of truth for current state. JSONB content (cards `data`, documents `content`) snapshots naturally. Deck versions capture card composition at a point in time. Strong FK constraints (unlike the polymorphic approach). No need to retrofit `WHERE is_current = true` across the codebase.
+
+**When to create versions — per entity:**
+
+| Entity | Automatic triggers | Manual trigger |
+|---|---|---|
+| Cards | Status change (draft→active→archived), before bulk operations (import overwrite, AI batch edit) | Explicit "Save snapshot" |
+| Documents | Periodic auto-save (time-based during active editing), before AI modifications | Explicit "Save version" |
+| Decks | Status change (draft→active→archived) | Explicit "Save snapshot" |
+
+**Reason is a Postgres enum** (`version_reason_enum`): `manual`, `status_change`, `pre_import`, `pre_restore`, `pre_ai_edit`, `periodic_auto_save`. Prevents typos and makes querying reliable. Each version also has an optional `label` for user-facing names (e.g., "Before playtesting", "Final v2").
+
+**Rationale for trigger policy:**
+- **Cards:** Cell-by-cell edits in the data grid are too granular/frequent to version individually. Status transitions and pre-bulk-operation snapshots protect against destructive changes.
+- **Documents:** Continuous typing in TipTap has no natural "save point." Periodic auto-save (like Google Docs version history) captures progress without user effort. Pre-AI snapshots protect against unwanted rewrites.
+- **Decks:** Composition changes (add/remove card, adjust quantity) are discrete but frequent during deck building. Status transitions capture meaningful milestones. Explicit snapshots let users bookmark a composition before experimenting.
+
+---
+
 ## 2026-03-02: AI SDK Tool Part Type Encodes Tool Name
 
 **Context:** Needed to persist tool call results in the database and reconstruct them when reloading chat history. The AI SDK's `isToolUIPart()` and `getToolName()` helpers determine tool identity from the part's `type` field.

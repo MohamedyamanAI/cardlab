@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import type { Card } from "@/lib/types";
+import type { Card, StatusEnum } from "@/lib/types";
 import { sanitizeError } from "./error-utils";
 
 export async function getCardsByProject(
@@ -14,6 +14,20 @@ export async function getCardsByProject(
 
   if (error) throw sanitizeError(error, "getCardsByProject", { projectId });
   return data as Card[];
+}
+
+export async function getCard(
+  supabase: SupabaseClient,
+  cardId: string
+): Promise<Card> {
+  const { data, error } = await supabase
+    .from("cards")
+    .select("*")
+    .eq("id", cardId)
+    .single();
+
+  if (error) throw sanitizeError(error, "getCard", { cardId });
+  return data as Card;
 }
 
 export async function createCard(
@@ -63,6 +77,22 @@ export async function updateCardData(
     .single();
 
   if (error) throw sanitizeError(error, "updateCardData", { cardId });
+  return card as Card;
+}
+
+export async function updateCardStatus(
+  supabase: SupabaseClient,
+  cardId: string,
+  status: StatusEnum
+): Promise<Card> {
+  const { data: card, error } = await supabase
+    .from("cards")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("id", cardId)
+    .select()
+    .single();
+
+  if (error) throw sanitizeError(error, "updateCardStatus", { cardId });
   return card as Card;
 }
 

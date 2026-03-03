@@ -18,9 +18,15 @@ export type AiChat = Tables<"ai_chats">;
 export type AiChatMessage = Tables<"ai_chat_messages">;
 export type Document = Tables<"documents">;
 
+// Version types
+export type CardVersion = Tables<"card_versions">;
+export type DocumentVersion = Tables<"document_versions">;
+export type DeckVersion = Tables<"deck_versions">;
+
 // Enum types (additional)
 export type UnitEnum = Enums<"unit_enum">;
 export type DocType = Enums<"doc_type_enum">;
+export type VersionReason = Enums<"version_reason_enum">;
 
 // Server action result wrapper
 export type ActionResult<T = void> =

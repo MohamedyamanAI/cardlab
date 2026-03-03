@@ -55,24 +55,24 @@ export type Database = {
       ai_chats: {
         Row: {
           created_at: string | null
-          project_id: string | null
           id: string
+          project_id: string | null
           title: string
           updated_at: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
-          project_id?: string | null
           id?: string
+          project_id?: string | null
           title?: string
           updated_at?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
-          project_id?: string | null
           id?: string
+          project_id?: string | null
           title?: string
           updated_at?: string | null
           user_id?: string
@@ -87,6 +87,304 @@ export type Database = {
           },
           {
             foreignKeyName: "ai_chats_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      card_versions: {
+        Row: {
+          card_id: string
+          created_at: string
+          created_by: string
+          data: Json
+          id: string
+          label: string | null
+          project_id: string
+          reason: Database["public"]["Enums"]["version_reason_enum"] | null
+          status: Database["public"]["Enums"]["status_enum"]
+          version_number: number
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          created_by: string
+          data: Json
+          id?: string
+          label?: string | null
+          project_id: string
+          reason?: Database["public"]["Enums"]["version_reason_enum"] | null
+          status: Database["public"]["Enums"]["status_enum"]
+          version_number: number
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          created_by?: string
+          data?: Json
+          id?: string
+          label?: string | null
+          project_id?: string
+          reason?: Database["public"]["Enums"]["version_reason_enum"] | null
+          status?: Database["public"]["Enums"]["status_enum"]
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_versions_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_versions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cards: {
+        Row: {
+          created_at: string | null
+          data: Json
+          id: string
+          project_id: string
+          status: Database["public"]["Enums"]["status_enum"]
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json
+          id?: string
+          project_id: string
+          status?: Database["public"]["Enums"]["status_enum"]
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json
+          id?: string
+          project_id?: string
+          status?: Database["public"]["Enums"]["status_enum"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cards_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deck_cards: {
+        Row: {
+          card_id: string
+          deck_id: string
+          quantity: number | null
+        }
+        Insert: {
+          card_id: string
+          deck_id: string
+          quantity?: number | null
+        }
+        Update: {
+          card_id?: string
+          deck_id?: string
+          quantity?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deck_cards_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deck_cards_deck_id_fkey"
+            columns: ["deck_id"]
+            isOneToOne: false
+            referencedRelation: "decks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deck_versions: {
+        Row: {
+          cards: Json
+          created_at: string
+          created_by: string
+          deck_id: string
+          description: string | null
+          id: string
+          label: string | null
+          name: string
+          project_id: string
+          reason: Database["public"]["Enums"]["version_reason_enum"] | null
+          status: Database["public"]["Enums"]["status_enum"]
+          version_number: number
+        }
+        Insert: {
+          cards?: Json
+          created_at?: string
+          created_by: string
+          deck_id: string
+          description?: string | null
+          id?: string
+          label?: string | null
+          name: string
+          project_id: string
+          reason?: Database["public"]["Enums"]["version_reason_enum"] | null
+          status: Database["public"]["Enums"]["status_enum"]
+          version_number: number
+        }
+        Update: {
+          cards?: Json
+          created_at?: string
+          created_by?: string
+          deck_id?: string
+          description?: string | null
+          id?: string
+          label?: string | null
+          name?: string
+          project_id?: string
+          reason?: Database["public"]["Enums"]["version_reason_enum"] | null
+          status?: Database["public"]["Enums"]["status_enum"]
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deck_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deck_versions_deck_id_fkey"
+            columns: ["deck_id"]
+            isOneToOne: false
+            referencedRelation: "decks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deck_versions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      decks: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          project_id: string
+          status: Database["public"]["Enums"]["status_enum"]
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          project_id: string
+          status?: Database["public"]["Enums"]["status_enum"]
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          project_id?: string
+          status?: Database["public"]["Enums"]["status_enum"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "decks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_versions: {
+        Row: {
+          content: Json
+          created_at: string
+          created_by: string
+          document_id: string
+          id: string
+          label: string | null
+          reason: Database["public"]["Enums"]["version_reason_enum"] | null
+          title: string
+          type: Database["public"]["Enums"]["doc_type_enum"] | null
+          user_id: string
+          version_number: number
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          created_by: string
+          document_id: string
+          id?: string
+          label?: string | null
+          reason?: Database["public"]["Enums"]["version_reason_enum"] | null
+          title: string
+          type?: Database["public"]["Enums"]["doc_type_enum"] | null
+          user_id: string
+          version_number: number
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          created_by?: string
+          document_id?: string
+          id?: string
+          label?: string | null
+          reason?: Database["public"]["Enums"]["version_reason_enum"] | null
+          title?: string
+          type?: Database["public"]["Enums"]["doc_type_enum"] | null
+          user_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_versions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_versions_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -142,160 +440,16 @@ export type Database = {
           },
         ]
       }
-      cards: {
-        Row: {
-          created_at: string | null
-          data: Json
-          project_id: string
-          id: string
-          status: Database["public"]["Enums"]["status_enum"]
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          data?: Json
-          project_id: string
-          id?: string
-          status?: Database["public"]["Enums"]["status_enum"]
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          data?: Json
-          project_id?: string
-          id?: string
-          status?: Database["public"]["Enums"]["status_enum"]
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cards_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      deck_cards: {
-        Row: {
-          card_id: string
-          deck_id: string
-          quantity: number | null
-        }
-        Insert: {
-          card_id: string
-          deck_id: string
-          quantity?: number | null
-        }
-        Update: {
-          card_id?: string
-          deck_id?: string
-          quantity?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "deck_cards_card_id_fkey"
-            columns: ["card_id"]
-            isOneToOne: false
-            referencedRelation: "cards"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "deck_cards_deck_id_fkey"
-            columns: ["deck_id"]
-            isOneToOne: false
-            referencedRelation: "decks"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      decks: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          project_id: string
-          id: string
-          name: string
-          status: Database["public"]["Enums"]["status_enum"]
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          project_id: string
-          id?: string
-          name: string
-          status?: Database["public"]["Enums"]["status_enum"]
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          project_id?: string
-          id?: string
-          name?: string
-          status?: Database["public"]["Enums"]["status_enum"]
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "decks_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      projects: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          id: string
-          name: string
-          status: Database["public"]["Enums"]["status_enum"]
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          name: string
-          status?: Database["public"]["Enums"]["status_enum"]
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          name?: string
-          status?: Database["public"]["Enums"]["status_enum"]
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "projects_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       layouts: {
         Row: {
           bleed_margin: number | null
           canvas_elements: Json
           condition: Json | null
           created_at: string | null
-          project_id: string
           height: number
           id: string
           name: string
+          project_id: string
           unit: Database["public"]["Enums"]["unit_enum"] | null
           updated_at: string | null
           width: number
@@ -305,10 +459,10 @@ export type Database = {
           canvas_elements?: Json
           condition?: Json | null
           created_at?: string | null
-          project_id: string
           height?: number
           id?: string
           name: string
+          project_id: string
           unit?: Database["public"]["Enums"]["unit_enum"] | null
           updated_at?: string | null
           width?: number
@@ -318,10 +472,10 @@ export type Database = {
           canvas_elements?: Json
           condition?: Json | null
           created_at?: string | null
-          project_id?: string
           height?: number
           id?: string
           name?: string
+          project_id?: string
           unit?: Database["public"]["Enums"]["unit_enum"] | null
           updated_at?: string | null
           width?: number
@@ -377,15 +531,53 @@ export type Database = {
           },
         ]
       }
+      projects: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          status: Database["public"]["Enums"]["status_enum"]
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          status?: Database["public"]["Enums"]["status_enum"]
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          status?: Database["public"]["Enums"]["status_enum"]
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       properties: {
         Row: {
           created_at: string | null
           default_value: string | null
-          project_id: string
           id: string
           is_required: boolean | null
           name: string
           options: Json | null
+          project_id: string
           slug: string
           sort_order: number | null
           type: Database["public"]["Enums"]["property_type_enum"]
@@ -393,11 +585,11 @@ export type Database = {
         Insert: {
           created_at?: string | null
           default_value?: string | null
-          project_id: string
           id?: string
           is_required?: boolean | null
           name: string
           options?: Json | null
+          project_id: string
           slug: string
           sort_order?: number | null
           type: Database["public"]["Enums"]["property_type_enum"]
@@ -405,11 +597,11 @@ export type Database = {
         Update: {
           created_at?: string | null
           default_value?: string | null
-          project_id?: string
           id?: string
           is_required?: boolean | null
           name?: string
           options?: Json | null
+          project_id?: string
           slug?: string
           sort_order?: number | null
           type?: Database["public"]["Enums"]["property_type_enum"]
@@ -475,6 +667,13 @@ export type Database = {
         | "color"
       status_enum: "draft" | "active" | "archived"
       unit_enum: "px" | "mm" | "in"
+      version_reason_enum:
+        | "manual"
+        | "status_change"
+        | "pre_import"
+        | "pre_restore"
+        | "pre_ai_edit"
+        | "periodic_auto_save"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -626,6 +825,14 @@ export const Constants = {
       ],
       status_enum: ["draft", "active", "archived"],
       unit_enum: ["px", "mm", "in"],
+      version_reason_enum: [
+        "manual",
+        "status_change",
+        "pre_import",
+        "pre_restore",
+        "pre_ai_edit",
+        "periodic_auto_save",
+      ],
     },
   },
 } as const

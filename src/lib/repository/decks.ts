@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import type { Deck } from "@/lib/types";
+import type { Deck, StatusEnum } from "@/lib/types";
 import { sanitizeError } from "./error-utils";
 
 export async function getDecksByProject(
@@ -29,6 +29,22 @@ export async function createDeck(
 
   if (error) throw sanitizeError(error, "createDeck", { projectId });
   return data as Deck;
+}
+
+export async function updateDeckStatus(
+  supabase: SupabaseClient,
+  deckId: string,
+  status: StatusEnum
+): Promise<Deck> {
+  const { data: deck, error } = await supabase
+    .from("decks")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("id", deckId)
+    .select()
+    .single();
+
+  if (error) throw sanitizeError(error, "updateDeckStatus", { deckId });
+  return deck as Deck;
 }
 
 export async function getDeckCardIds(

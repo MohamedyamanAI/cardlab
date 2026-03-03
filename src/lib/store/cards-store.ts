@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Project, Property, Card, Deck, PropertyType } from "@/lib/types";
+import type { Project, Property, Card, Deck, PropertyType, StatusEnum } from "@/lib/types";
 import type { Json } from "@/lib/supabase/database.types";
 import * as projectActions from "@/lib/actions/projects";
 import * as propertyActions from "@/lib/actions/properties";
@@ -41,6 +41,7 @@ interface CardsState {
   // Deck actions
   createDeck: (input: { name: string; description?: string }) => Promise<Deck | null>;
   selectDeck: (deckId: string | null) => Promise<void>;
+  updateDeckStatus: (deckId: string, status: StatusEnum) => Promise<void>;
 
   // Computed
   filteredCards: () => Card[];
@@ -74,6 +75,7 @@ interface CardsState {
   // Card actions
   addCard: () => Promise<void>;
   updateCell: (cardId: string, slug: string, value: unknown) => Promise<void>;
+  updateCardStatus: (cardId: string, status: StatusEnum) => Promise<void>;
   deleteSelectedCards: () => Promise<void>;
   duplicateSelectedCards: () => Promise<void>;
 
@@ -180,6 +182,21 @@ export const useCardsStore = create<CardsState>((set, get) => ({
     }
     toast.error(result.error);
     return null;
+  },
+
+  updateDeckStatus: async (deckId, status) => {
+    const prevDecks = get().decks;
+    set((state) => ({
+      decks: state.decks.map((d) =>
+        d.id === deckId ? { ...d, status } : d
+      ),
+    }));
+
+    const result = await deckActions.updateDeckStatus(deckId, status);
+    if (!result.success) {
+      set({ decks: prevDecks });
+      toast.error(result.error);
+    }
   },
 
   selectDeck: async (deckId) => {
@@ -319,6 +336,21 @@ export const useCardsStore = create<CardsState>((set, get) => ({
         cards: [...state.cards, result.data],
       }));
     } else {
+      toast.error(result.error);
+    }
+  },
+
+  updateCardStatus: async (cardId, status) => {
+    const prevCards = get().cards;
+    set((state) => ({
+      cards: state.cards.map((c) =>
+        c.id === cardId ? { ...c, status } : c
+      ),
+    }));
+
+    const result = await cardActions.updateCardStatus(cardId, status);
+    if (!result.success) {
+      set({ cards: prevCards });
       toast.error(result.error);
     }
   },

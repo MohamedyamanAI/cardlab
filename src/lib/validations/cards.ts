@@ -34,3 +34,8 @@ export const duplicateCardsSchema = z.object({
   card_ids: z.array(z.string().uuid()).min(1),
   project_id: z.string().uuid(),
 });
+
+export const updateCardStatusSchema = z.object({
+  card_id: z.string().uuid(),
+  status: z.enum(["draft", "active", "archived"]),
+});

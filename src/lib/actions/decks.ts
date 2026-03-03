@@ -3,8 +3,9 @@
 import { createClient } from "@/lib/supabase/server";
 import * as decksRepo from "@/lib/repository/decks";
 import { verifyProjectOwnership } from "@/lib/actions/auth-utils";
-import { createDeckSchema } from "@/lib/validations/decks";
-import type { Deck, ActionResult } from "@/lib/types";
+import { createDeckSchema, updateDeckStatusSchema } from "@/lib/validations/decks";
+import * as versionsRepo from "@/lib/repository/versions";
+import type { Deck, ActionResult, StatusEnum } from "@/lib/types";
 
 export async function getDecks(
   projectId: string
@@ -55,6 +56,49 @@ export async function createDeck(input: {
     return { success: true, data: deck };
   } catch {
     return { success: false, error: "Failed to create deck" };
+  }
+}
+
+export async function updateDeckStatus(
+  deckId: string,
+  status: StatusEnum
+): Promise<ActionResult<Deck>> {
+  const parsed = updateDeckStatusSchema.safeParse({ deck_id: deckId, status });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Unauthorized" };
+
+  try {
+    // Fetch current deck to verify ownership and snapshot
+    const { data: deck, error: fetchError } = await supabase
+      .from("decks")
+      .select("*")
+      .eq("id", deckId)
+      .single();
+
+    if (fetchError || !deck) return { success: false, error: "Deck not found" };
+
+    if (!(await verifyProjectOwnership(supabase, deck.project_id, user.id))) {
+      return { success: false, error: "Project not found" };
+    }
+
+    // Snapshot current state before status change
+    const deckCards = await decksRepo.getDeckCardQuantities(supabase, deckId);
+    await versionsRepo.createDeckVersion(supabase, deckId, deck as Deck, deckCards, {
+      reason: "status_change",
+      createdBy: user.id,
+    });
+
+    const updated = await decksRepo.updateDeckStatus(supabase, deckId, parsed.data.status);
+    return { success: true, data: updated };
+  } catch {
+    return { success: false, error: "Failed to update deck status" };
   }
 }
 

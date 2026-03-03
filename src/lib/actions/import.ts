@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import * as propertiesRepo from "@/lib/repository/properties";
 import * as cardsRepo from "@/lib/repository/cards";
+import * as versionsRepo from "@/lib/repository/versions";
 import { verifyProjectOwnership } from "@/lib/actions/auth-utils";
 import type { ActionResult, Property, PropertyType } from "@/lib/types";
 import type { ImportResult } from "@/lib/types/import";
@@ -58,6 +59,20 @@ export async function importCards(input: {
 
   try {
     const { mappings, rows } = input;
+
+    // Snapshot existing cards before import
+    const existingCards = await cardsRepo.getCardsByProject(supabase, input.project_id);
+    if (existingCards.length > 0) {
+      await Promise.all(
+        existingCards.map((card) =>
+          versionsRepo.createCardVersion(supabase, card.id, card, {
+            reason: "pre_import",
+            createdBy: user!.id,
+          })
+        )
+      );
+    }
+
     const activeMappings = mappings.filter((m) => m.action !== "skip");
 
     // Get existing properties
