@@ -2,6 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import * as decksRepo from "@/lib/repository/decks";
+import { verifyProjectOwnership } from "@/lib/actions/auth-utils";
+import { createDeckSchema } from "@/lib/validations/decks";
 import type { Deck, ActionResult } from "@/lib/types";
 
 export async function getDecks(
@@ -12,6 +14,10 @@ export async function getDecks(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Unauthorized" };
+
+  if (!(await verifyProjectOwnership(supabase, projectId, user.id))) {
+    return { success: false, error: "Project not found" };
+  }
 
   try {
     const decks = await decksRepo.getDecksByProject(supabase, projectId);
@@ -26,20 +32,25 @@ export async function createDeck(input: {
   name: string;
   description?: string;
 }): Promise<ActionResult<Deck>> {
+  const parsed = createDeckSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Unauthorized" };
 
-  if (!input.name || input.name.trim().length === 0) {
-    return { success: false, error: "Deck name is required" };
+  if (!(await verifyProjectOwnership(supabase, parsed.data.project_id, user.id))) {
+    return { success: false, error: "Project not found" };
   }
 
   try {
-    const deck = await decksRepo.createDeck(supabase, input.project_id, {
-      name: input.name.trim(),
-      description: input.description?.trim(),
+    const deck = await decksRepo.createDeck(supabase, parsed.data.project_id, {
+      name: parsed.data.name.trim(),
+      description: parsed.data.description?.trim(),
     });
     return { success: true, data: deck };
   } catch {

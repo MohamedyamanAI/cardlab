@@ -2,21 +2,12 @@
 
 import { createClient } from "@/lib/supabase/server";
 import * as propertiesRepo from "@/lib/repository/properties";
-import * as projectsRepo from "@/lib/repository/projects";
+import { verifyProjectOwnership } from "@/lib/actions/auth-utils";
+import {
+  createPropertySchema,
+  updatePropertySchema,
+} from "@/lib/validations/properties";
 import type { Property, PropertyType, ActionResult } from "@/lib/types";
-
-async function verifyProjectOwnership(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  projectId: string,
-  userId: string
-): Promise<boolean> {
-  try {
-    await projectsRepo.getProjectById(supabase, projectId, userId);
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 export async function getProperties(
   projectId: string
@@ -49,27 +40,28 @@ export async function createProperty(input: {
   options?: string[];
   is_required?: boolean;
 }): Promise<ActionResult<Property>> {
+  const parsed = createPropertySchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Unauthorized" };
 
-  if (!(await verifyProjectOwnership(supabase, input.project_id, user.id))) {
+  if (!(await verifyProjectOwnership(supabase, parsed.data.project_id, user.id))) {
     return { success: false, error: "Project not found" };
-  }
-
-  if (!input.name || input.name.trim().length === 0) {
-    return { success: false, error: "Property name is required" };
   }
 
   try {
     const property = await propertiesRepo.createProperty(supabase, {
-      project_id: input.project_id,
-      name: input.name.trim(),
-      type: input.type,
-      options: input.options,
-      is_required: input.is_required,
+      project_id: parsed.data.project_id,
+      name: parsed.data.name.trim(),
+      type: parsed.data.type,
+      options: parsed.data.options,
+      is_required: parsed.data.is_required,
     });
     return { success: true, data: property };
   } catch {
@@ -86,6 +78,11 @@ export async function updateProperty(
     is_required?: boolean;
   }
 ): Promise<ActionResult<Property>> {
+  const parsed = updatePropertySchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

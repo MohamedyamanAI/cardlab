@@ -1,5 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import type { Project } from "@/lib/types";
+import { sanitizeError } from "./error-utils";
 
 export async function getProjectsByUser(
   supabase: SupabaseClient,
@@ -11,7 +12,7 @@ export async function getProjectsByUser(
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "getProjectsByUser", { userId });
   return data as Project[];
 }
 
@@ -27,7 +28,7 @@ export async function getProjectById(
     .eq("user_id", userId)
     .single();
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "getProjectById", { projectId, userId });
   return data as Project;
 }
 
@@ -42,6 +43,6 @@ export async function createProject(
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "createProject", { userId });
   return data as Project;
 }

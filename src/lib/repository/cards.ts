@@ -1,5 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import type { Card } from "@/lib/types";
+import { sanitizeError } from "./error-utils";
 
 export async function getCardsByProject(
   supabase: SupabaseClient,
@@ -11,7 +12,7 @@ export async function getCardsByProject(
     .eq("project_id", projectId)
     .order("created_at", { ascending: true });
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "getCardsByProject", { projectId });
   return data as Card[];
 }
 
@@ -29,7 +30,7 @@ export async function createCard(
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "createCard", { projectId });
   return card as Card;
 }
 
@@ -45,7 +46,7 @@ export async function updateCardData(
     .eq("id", cardId)
     .single();
 
-  if (fetchError) throw fetchError;
+  if (fetchError) throw sanitizeError(fetchError, "updateCardData", { cardId });
 
   const mergedData = {
     ...(typeof existing.data === "object" && existing.data !== null
@@ -61,7 +62,7 @@ export async function updateCardData(
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "updateCardData", { cardId });
   return card as Card;
 }
 
@@ -70,7 +71,7 @@ export async function deleteCard(
   cardId: string
 ): Promise<void> {
   const { error } = await supabase.from("cards").delete().eq("id", cardId);
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "deleteCard", { cardId });
 }
 
 export async function bulkDeleteCards(
@@ -82,7 +83,7 @@ export async function bulkDeleteCards(
     .delete()
     .in("id", cardIds);
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "bulkDeleteCards");
 }
 
 export async function bulkCreateCards(
@@ -100,7 +101,7 @@ export async function bulkCreateCards(
     .insert(inserts)
     .select();
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "bulkCreateCards", { projectId });
   return cards as Card[];
 }
 
@@ -115,7 +116,7 @@ export async function duplicateCards(
     .select("data")
     .in("id", cardIds);
 
-  if (fetchError) throw fetchError;
+  if (fetchError) throw sanitizeError(fetchError, "duplicateCards", { cardIds });
   if (!sourceCards || sourceCards.length === 0) return [];
 
   // Insert duplicates
@@ -129,6 +130,6 @@ export async function duplicateCards(
     .insert(inserts)
     .select();
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "duplicateCards", { projectId });
   return newCards as Card[];
 }

@@ -1,9 +1,9 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import * as projectsRepo from "@/lib/repository/projects";
 import * as propertiesRepo from "@/lib/repository/properties";
 import * as cardsRepo from "@/lib/repository/cards";
+import { verifyProjectOwnership } from "@/lib/actions/auth-utils";
 import type { ActionResult, Property, PropertyType } from "@/lib/types";
 import type { ImportResult } from "@/lib/types/import";
 import { importCardsSchema } from "@/lib/validations/cards";
@@ -52,10 +52,7 @@ export async function importCards(input: {
     return { success: false, error: "Invalid import data" };
   }
 
-  // Verify ownership
-  try {
-    await projectsRepo.getProjectById(supabase, input.project_id, user.id);
-  } catch {
+  if (!(await verifyProjectOwnership(supabase, input.project_id, user.id))) {
     return { success: false, error: "Project not found" };
   }
 

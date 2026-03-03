@@ -1,5 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import type { Media, MediaType } from "@/lib/types";
+import { sanitizeError } from "./error-utils";
 
 export async function getMediaByUser(
   supabase: SupabaseClient,
@@ -11,7 +12,7 @@ export async function getMediaByUser(
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "getMediaByUser", { userId });
   return data as Media[];
 }
 
@@ -39,7 +40,7 @@ export async function createMediaRecord(
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "createMediaRecord", { userId: params.userId });
   return data as Media;
 }
 
@@ -48,7 +49,7 @@ export async function deleteMediaRecord(
   mediaId: string
 ): Promise<void> {
   const { error } = await supabase.from("media").delete().eq("id", mediaId);
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "deleteMediaRecord", { mediaId });
 }
 
 export async function bulkDeleteMediaRecords(
@@ -60,5 +61,5 @@ export async function bulkDeleteMediaRecords(
     .delete()
     .in("id", mediaIds);
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "bulkDeleteMediaRecords");
 }

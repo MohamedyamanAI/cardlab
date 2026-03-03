@@ -2,21 +2,14 @@
 
 import { createClient } from "@/lib/supabase/server";
 import * as cardsRepo from "@/lib/repository/cards";
-import * as projectsRepo from "@/lib/repository/projects";
+import { verifyProjectOwnership } from "@/lib/actions/auth-utils";
+import {
+  createCardSchema,
+  updateCardDataSchema,
+  bulkDeleteCardsSchema,
+  duplicateCardsSchema,
+} from "@/lib/validations/cards";
 import type { Card, ActionResult } from "@/lib/types";
-
-async function verifyProjectOwnership(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  projectId: string,
-  userId: string
-): Promise<boolean> {
-  try {
-    await projectsRepo.getProjectById(supabase, projectId, userId);
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 export async function getCards(
   projectId: string
@@ -42,18 +35,23 @@ export async function getCards(
 export async function createCard(
   projectId: string
 ): Promise<ActionResult<Card>> {
+  const parsed = createCardSchema.safeParse({ project_id: projectId });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Unauthorized" };
 
-  if (!(await verifyProjectOwnership(supabase, projectId, user.id))) {
+  if (!(await verifyProjectOwnership(supabase, parsed.data.project_id, user.id))) {
     return { success: false, error: "Project not found" };
   }
 
   try {
-    const card = await cardsRepo.createCard(supabase, projectId);
+    const card = await cardsRepo.createCard(supabase, parsed.data.project_id);
     return { success: true, data: card };
   } catch {
     return { success: false, error: "Failed to create card" };
@@ -65,17 +63,21 @@ export async function updateCardCell(
   slug: string,
   value: unknown
 ): Promise<ActionResult<Card>> {
+  const parsed = updateCardDataSchema.safeParse({ card_id: cardId, data: { [slug]: value } });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Unauthorized" };
 
-  // Verify ownership via the card's project
   const { data: cardRow, error: fetchError } = await supabase
     .from("cards")
     .select("project_id")
-    .eq("id", cardId)
+    .eq("id", parsed.data.card_id)
     .single();
 
   if (fetchError || !cardRow)
@@ -86,7 +88,7 @@ export async function updateCardCell(
   }
 
   try {
-    const card = await cardsRepo.updateCardData(supabase, cardId, {
+    const card = await cardsRepo.updateCardData(supabase, parsed.data.card_id, {
       [slug]: value,
     });
     return { success: true, data: card };
@@ -98,17 +100,17 @@ export async function updateCardCell(
 export async function deleteCards(
   cardIds: string[]
 ): Promise<ActionResult> {
+  const parsed = bulkDeleteCardsSchema.safeParse({ card_ids: cardIds });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Unauthorized" };
 
-  if (cardIds.length === 0) {
-    return { success: false, error: "No cards to delete" };
-  }
-
-  // Verify ownership via the first card's project
   const { data: cardRow, error: fetchError } = await supabase
     .from("cards")
     .select("project_id")
@@ -134,13 +136,18 @@ export async function duplicateCards(
   cardIds: string[],
   projectId: string
 ): Promise<ActionResult<Card[]>> {
+  const parsed = duplicateCardsSchema.safeParse({ card_ids: cardIds, project_id: projectId });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Unauthorized" };
 
-  if (!(await verifyProjectOwnership(supabase, projectId, user.id))) {
+  if (!(await verifyProjectOwnership(supabase, parsed.data.project_id, user.id))) {
     return { success: false, error: "Project not found" };
   }
 

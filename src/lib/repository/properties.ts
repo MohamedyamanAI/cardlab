@@ -1,6 +1,7 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import type { Property, PropertyType } from "@/lib/types";
 import { slugify } from "@/lib/utils/slugify";
+import { sanitizeError } from "./error-utils";
 
 export async function getPropertiesByProject(
   supabase: SupabaseClient,
@@ -12,7 +13,7 @@ export async function getPropertiesByProject(
     .eq("project_id", projectId)
     .order("sort_order", { ascending: true });
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "getPropertiesByProject", { projectId });
   return data as Property[];
 }
 
@@ -72,7 +73,7 @@ export async function createProperty(
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "createProperty", { project_id: input.project_id });
   return data as Property;
 }
 
@@ -131,7 +132,7 @@ export async function bulkCreateProperties(
     .insert(inserts)
     .select();
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "bulkCreateProperties", { projectId });
   return data as Property[];
 }
 
@@ -158,7 +159,7 @@ export async function updateProperty(
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "updateProperty", { propertyId });
   return data as Property;
 }
 
@@ -171,7 +172,7 @@ export async function deleteProperty(
     .delete()
     .eq("id", propertyId);
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "deleteProperty", { propertyId });
 }
 
 export async function reorderProperties(
@@ -190,5 +191,5 @@ export async function reorderProperties(
 
   const results = await Promise.all(updates);
   const failed = results.find((r) => r.error);
-  if (failed?.error) throw failed.error;
+  if (failed?.error) throw sanitizeError(failed.error, "reorderProperties", { projectId });
 }

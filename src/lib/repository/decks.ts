@@ -1,5 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import type { Deck } from "@/lib/types";
+import { sanitizeError } from "./error-utils";
 
 export async function getDecksByProject(
   supabase: SupabaseClient,
@@ -11,7 +12,7 @@ export async function getDecksByProject(
     .eq("project_id", projectId)
     .order("created_at", { ascending: false });
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "getDecksByProject", { projectId });
   return data as Deck[];
 }
 
@@ -26,7 +27,7 @@ export async function createDeck(
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "createDeck", { projectId });
   return data as Deck;
 }
 
@@ -39,7 +40,7 @@ export async function getDeckCardIds(
     .select("card_id")
     .eq("deck_id", deckId);
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "getDeckCardIds", { deckId });
   return (data ?? []).map((row) => row.card_id);
 }
 
@@ -52,7 +53,7 @@ export async function getDeckCardQuantities(
     .select("card_id, quantity")
     .eq("deck_id", deckId);
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "getDeckCardQuantities", { deckId });
   return (data ?? []).map((row) => ({
     card_id: row.card_id,
     quantity: row.quantity ?? 1,

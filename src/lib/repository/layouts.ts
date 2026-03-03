@@ -2,6 +2,7 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import type { Layout } from "@/lib/types";
 import type { CanvasElement } from "@/lib/types/canvas-elements";
 import type { Json } from "@/lib/supabase/database.types";
+import { sanitizeError } from "./error-utils";
 
 export async function getLayoutsByProject(
   supabase: SupabaseClient,
@@ -13,7 +14,7 @@ export async function getLayoutsByProject(
     .eq("project_id", projectId)
     .order("created_at", { ascending: true });
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "getLayoutsByProject", { projectId });
   return data as Layout[];
 }
 
@@ -27,7 +28,7 @@ export async function getLayoutById(
     .eq("id", layoutId)
     .single();
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "getLayoutById", { layoutId });
   return data as Layout;
 }
 
@@ -52,7 +53,7 @@ export async function createLayout(
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "createLayout", { project_id: input.project_id });
   return data as Layout;
 }
 
@@ -81,7 +82,7 @@ export async function updateLayout(
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "updateLayout", { layoutId });
   return data as Layout;
 }
 
@@ -97,7 +98,7 @@ export async function saveCanvasElements(
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "saveCanvasElements", { layoutId });
   return data as Layout;
 }
 
@@ -110,5 +111,5 @@ export async function deleteLayout(
     .delete()
     .eq("id", layoutId);
 
-  if (error) throw error;
+  if (error) throw sanitizeError(error, "deleteLayout", { layoutId });
 }

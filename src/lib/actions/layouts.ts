@@ -2,23 +2,14 @@
 
 import { createClient } from "@/lib/supabase/server";
 import * as layoutsRepo from "@/lib/repository/layouts";
-import * as projectsRepo from "@/lib/repository/projects";
+import { verifyProjectOwnership } from "@/lib/actions/auth-utils";
+import {
+  createLayoutSchema,
+  updateLayoutSchema,
+} from "@/lib/validations/layouts";
 import type { Layout, ActionResult } from "@/lib/types";
 import type { CanvasElement } from "@/lib/types/canvas-elements";
 import type { Json } from "@/lib/supabase/database.types";
-
-async function verifyProjectOwnership(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  projectId: string,
-  userId: string
-): Promise<boolean> {
-  try {
-    await projectsRepo.getProjectById(supabase, projectId, userId);
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 export async function getLayouts(
   projectId: string
@@ -47,26 +38,27 @@ export async function createLayout(input: {
   width?: number;
   height?: number;
 }): Promise<ActionResult<Layout>> {
+  const parsed = createLayoutSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Unauthorized" };
 
-  if (!(await verifyProjectOwnership(supabase, input.project_id, user.id))) {
+  if (!(await verifyProjectOwnership(supabase, parsed.data.project_id, user.id))) {
     return { success: false, error: "Project not found" };
-  }
-
-  if (!input.name || input.name.trim().length === 0) {
-    return { success: false, error: "Layout name is required" };
   }
 
   try {
     const layout = await layoutsRepo.createLayout(supabase, {
-      project_id: input.project_id,
-      name: input.name.trim(),
-      width: input.width,
-      height: input.height,
+      project_id: parsed.data.project_id,
+      name: parsed.data.name.trim(),
+      width: parsed.data.width,
+      height: parsed.data.height,
     });
     return { success: true, data: layout };
   } catch {
@@ -84,6 +76,11 @@ export async function updateLayout(
     condition?: Json | null;
   }
 ): Promise<ActionResult<Layout>> {
+  const parsed = updateLayoutSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
