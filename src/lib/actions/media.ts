@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import * as mediaRepo from "@/lib/repository/media";
-import type { Media, ActionResult } from "@/lib/types";
+import type { Media, MediaType, ActionResult } from "@/lib/types";
 
 export async function getMedia(): Promise<ActionResult<Media[]>> {
   const supabase = await createClient();
@@ -36,9 +36,23 @@ export async function uploadMedia(
     return { success: false, error: "File exceeds 10MB limit" };
   }
 
-  const allowedTypes = ["image/png", "image/jpeg", "image/webp"];
+  const allowedTypes = [
+    "image/png",
+    "image/jpeg",
+    "image/webp",
+    "application/pdf",
+    "text/csv",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-excel",
+  ];
   if (!allowedTypes.includes(file.type)) {
     return { success: false, error: "Unsupported file type" };
+  }
+
+  function resolveMediaType(mime: string): MediaType {
+    if (mime.startsWith("image/")) return "image";
+    if (mime === "application/pdf") return "document";
+    return "spreadsheet";
   }
 
   try {
@@ -63,7 +77,7 @@ export async function uploadMedia(
       mimeType: file.type,
       sizeBytes: file.size,
       storagePath,
-      type: "image",
+      type: resolveMediaType(file.type),
     });
 
     return { success: true, data: media };

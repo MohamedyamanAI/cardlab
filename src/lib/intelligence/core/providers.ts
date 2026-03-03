@@ -1,5 +1,18 @@
 import type { AspectRatio, ImageModel, StylePreset } from "./types";
 
+export const CHAT_MODELS = [
+  { id: "gemini-2.5-flash", label: "Flash" },
+  { id: "gemini-2.5-pro", label: "Pro" },
+] as const;
+
+export type ChatModelId = (typeof CHAT_MODELS)[number]["id"];
+
+const CHAT_MODEL_IDS = new Set<string>(CHAT_MODELS.map((m) => m.id));
+
+export function isValidChatModel(model: string): model is ChatModelId {
+  return CHAT_MODEL_IDS.has(model);
+}
+
 export const IMAGE_STYLE_PRESETS: StylePreset[] = [
   { id: "none", label: "None", promptSuffix: "" },
   {

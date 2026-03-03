@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       ai_chat_messages: {
         Row: {
+          attachments: Json | null
           chat_id: string
           content: string | null
           created_at: string | null
@@ -25,6 +26,7 @@ export type Database = {
           tool_calls: Json | null
         }
         Insert: {
+          attachments?: Json | null
           chat_id: string
           content?: string | null
           created_at?: string | null
@@ -34,6 +36,7 @@ export type Database = {
           tool_calls?: Json | null
         }
         Update: {
+          attachments?: Json | null
           chat_id?: string
           content?: string | null
           created_at?: string | null

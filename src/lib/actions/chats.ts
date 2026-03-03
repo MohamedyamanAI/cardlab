@@ -102,7 +102,12 @@ export async function getChatMessages(
 
 export async function saveMessages(
   chatId: string,
-  messages: { role: "user" | "assistant" | "tool"; content: string | null; toolCalls?: unknown }[]
+  messages: {
+    role: "user" | "assistant" | "tool";
+    content: string | null;
+    toolCalls?: unknown;
+    attachments?: { mediaId: string; filename: string; mediaType: string }[];
+  }[]
 ): Promise<ActionResult> {
   const parsed = saveMessagesSchema.safeParse({ chatId, messages });
   if (!parsed.success) {
@@ -125,6 +130,7 @@ export async function saveMessages(
         role: m.role as "user" | "assistant" | "tool",
         content: m.content ?? null,
         toolCalls: m.toolCalls as import("@/lib/supabase/database.types").Json | undefined,
+        attachments: m.attachments as import("@/lib/supabase/database.types").Json | undefined,
       }))
     );
 

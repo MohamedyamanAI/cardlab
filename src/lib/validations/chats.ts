@@ -16,6 +16,15 @@ export const saveMessagesSchema = z.object({
         role: z.enum(["user", "assistant", "tool"]),
         content: z.string().max(50000).nullable(),
         toolCalls: z.unknown().optional(),
+        attachments: z
+          .array(
+            z.object({
+              mediaId: z.string().uuid(),
+              filename: z.string(),
+              mediaType: z.string(),
+            })
+          )
+          .optional(),
       })
     )
     .min(1),

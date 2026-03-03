@@ -233,10 +233,11 @@ CREATE TABLE ai_chat_messages (
   content TEXT,
   tool_calls JSONB,
   tool_call_id TEXT,
+  attachments JSONB,
   created_at TIMESTAMPTZ DEFAULT NOW(),
 
   CONSTRAINT message_has_content_or_tool_call
-    CHECK (content IS NOT NULL OR tool_calls IS NOT NULL)
+    CHECK (content IS NOT NULL OR tool_calls IS NOT NULL OR attachments IS NOT NULL)
 );
 
 -- ============================================================================

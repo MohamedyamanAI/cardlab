@@ -1,8 +1,8 @@
 import { createAgentUIStreamResponse, type UIMessage } from "ai";
 import { createClient } from "@/lib/supabase/server";
 import { createIdeationAgent } from "@/lib/intelligence/features/ideation";
-
-const ALLOWED_MODELS = new Set(["gemini-2.5-flash", "gemini-2.5-pro"]);
+import { preprocessMessages } from "@/lib/intelligence/core/preprocess-messages";
+import { isValidChatModel } from "@/lib/intelligence/core/providers";
 
 export async function POST(req: Request) {
   const supabase = await createClient();
@@ -16,7 +16,8 @@ export async function POST(req: Request) {
   const { messages, model }: { messages: UIMessage[]; model?: string } =
     await req.json();
 
-  const selectedModel = model && ALLOWED_MODELS.has(model) ? model : undefined;
+  const selectedModel = model && isValidChatModel(model) ? model : undefined;
+  const processedMessages = preprocessMessages(messages);
 
   return createAgentUIStreamResponse({
     agent: createIdeationAgent({
@@ -24,7 +25,7 @@ export async function POST(req: Request) {
       supabase,
       userId: user.id,
     }),
-    uiMessages: messages,
+    uiMessages: processedMessages,
     abortSignal: req.signal,
   });
 }
