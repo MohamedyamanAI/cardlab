@@ -12,9 +12,19 @@ import {
 import { useLayoutEditorStore } from "@/lib/store/layout-editor-store";
 import { CreateLayoutDialog } from "./create-layout-dialog";
 import { ConditionEditor } from "./condition-editor";
-import { IconPlus, IconDeviceFloppy, IconTrash } from "@tabler/icons-react";
+import {
+  IconPlus,
+  IconDeviceFloppy,
+  IconTrash,
+  IconLayoutGrid,
+} from "@tabler/icons-react";
 
-export function EditorHeader() {
+interface EditorHeaderProps {
+  onOpenBrowse?: () => void;
+  browseExpanded?: boolean;
+}
+
+export function EditorHeader({ onOpenBrowse, browseExpanded }: EditorHeaderProps) {
   const [showCreate, setShowCreate] = useState(false);
   const layouts = useLayoutEditorStore((s) => s.layouts);
   const currentLayoutId = useLayoutEditorStore((s) => s.currentLayoutId);
@@ -26,37 +36,56 @@ export function EditorHeader() {
 
   return (
     <div className="flex items-center gap-2 border-b px-4 py-2">
-      <Select
-        value={currentLayoutId ?? "__none__"}
-        onValueChange={(val) => selectLayout(val === "__none__" ? null : val)}
-      >
-        <SelectTrigger className="h-8 w-48 text-sm">
-          <SelectValue placeholder="Select layout..." />
-        </SelectTrigger>
-        <SelectContent>
-          {layouts.length === 0 && (
-            <SelectItem value="__none__" disabled>
-              No layouts
-            </SelectItem>
-          )}
-          {layouts.map((l) => (
-            <SelectItem key={l.id} value={l.id}>
-              {l.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {onOpenBrowse && !browseExpanded && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onOpenBrowse}
+          title="Browse layouts"
+        >
+          <IconLayoutGrid className="size-4" />
+        </Button>
+      )}
 
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setShowCreate(true)}
-      >
-        <IconPlus className="size-4" />
-        New
-      </Button>
+      {!browseExpanded && (
+        <>
+          <Select
+            value={currentLayoutId ?? "__none__"}
+            onValueChange={(val) => selectLayout(val === "__none__" ? null : val)}
+          >
+            <SelectTrigger className="h-8 w-48 text-sm">
+              <SelectValue placeholder="Select layout..." />
+            </SelectTrigger>
+            <SelectContent>
+              {layouts.length === 0 && (
+                <SelectItem value="__none__" disabled>
+                  No layouts
+                </SelectItem>
+              )}
+              {layouts.map((l) => (
+                <SelectItem key={l.id} value={l.id}>
+                  {l.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-      {currentLayoutId && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowCreate(true)}
+          >
+            <IconPlus className="size-4" />
+            New
+          </Button>
+        </>
+      )}
+
+      {browseExpanded && (
+        <span className="text-sm font-medium">Layouts</span>
+      )}
+
+      {currentLayoutId && !browseExpanded && (
         <>
           <ConditionEditor />
           <div className="flex-1" />

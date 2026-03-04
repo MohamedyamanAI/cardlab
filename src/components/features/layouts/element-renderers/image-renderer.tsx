@@ -12,12 +12,14 @@ export function ImageRenderer({ element, previewValue }: ImageRendererProps) {
 
   // Resolve media ID from preview data or static_src
   const mediaId = previewValue ?? element.static_src;
-  const signedUrl = mediaId ? getSignedUrl(mediaId) : undefined;
+  const isPublicPath = mediaId?.startsWith("/");
+  const signedUrl = mediaId && !isPublicPath ? getSignedUrl(mediaId) : undefined;
+  const src = isPublicPath ? mediaId : signedUrl;
 
-  if (signedUrl) {
+  if (src) {
     return (
       <img
-        src={signedUrl}
+        src={src}
         alt=""
         className="pointer-events-none h-full w-full select-none"
         style={{

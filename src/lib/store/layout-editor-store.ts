@@ -43,10 +43,23 @@ export function formatUnit(px: number, unit: RulerUnit): string {
   return `${v.toFixed(2)} ${unit}`;
 }
 
+const LS_LAYOUT_PREFIX = "cardlab:lastLayoutId:";
+
+function getStoredLayoutId(projectId: string): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(`${LS_LAYOUT_PREFIX}${projectId}`);
+}
+
+function setStoredLayoutId(projectId: string, layoutId: string): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(`${LS_LAYOUT_PREFIX}${projectId}`, layoutId);
+}
+
 interface LayoutEditorState {
   // Data
   layouts: Layout[];
   currentLayoutId: string | null;
+  currentProjectId: string | null;
   elements: CanvasElement[];
   isDirty: boolean;
   selectedElementIds: Set<string>;
@@ -89,6 +102,7 @@ interface LayoutEditorState {
   canRedo: () => boolean;
 
   // Layout CRUD
+  getLastLayoutIdForProject: (projectId: string) => string | null;
   loadLayouts: (projectId: string) => Promise<void>;
   selectLayout: (layoutId: string | null) => void;
   createLayout: (input: {
@@ -153,6 +167,7 @@ function pushHistory(state: LayoutEditorState) {
 export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
   layouts: [],
   currentLayoutId: null,
+  currentProjectId: null,
   elements: [],
   isDirty: false,
   selectedElementIds: new Set<string>(),
@@ -199,7 +214,10 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
   canUndo: () => get().history.length > 0,
   canRedo: () => get().future.length > 0,
 
+  getLastLayoutIdForProject: (projectId) => getStoredLayoutId(projectId),
+
   loadLayouts: async (projectId) => {
+    set({ currentProjectId: projectId });
     const result = await layoutActions.getLayouts(projectId);
     if (result.success) {
       set({ layouts: result.data });
@@ -227,6 +245,11 @@ export const useLayoutEditorStore = create<LayoutEditorState>((set, get) => ({
     const elements = Array.isArray(layout.canvas_elements)
       ? (layout.canvas_elements as unknown as CanvasElement[])
       : [];
+
+    const projectId = get().currentProjectId;
+    if (projectId) {
+      setStoredLayoutId(projectId, layoutId);
+    }
 
     set({
       currentLayoutId: layoutId,

@@ -1,19 +1,23 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { useLayoutEditorStore } from "@/lib/store/layout-editor-store";
 import { useCardsStore } from "@/lib/store/cards-store";
 import { EditorHeader } from "./editor-header";
 import { ElementsPanel } from "./panels/elements-panel";
 import { CanvasViewport } from "./canvas/canvas-viewport";
 import { PropertiesPanel } from "./panels/properties-panel";
+import { LayoutBrowsePanel } from "./browse/layout-browse-panel";
 
 export function LayoutEditor() {
   const selectedProjectId = useCardsStore((s) => s.selectedProjectId);
   const loadLayouts = useLayoutEditorStore((s) => s.loadLayouts);
+  const layouts = useLayoutEditorStore((s) => s.layouts);
   const currentLayoutId = useLayoutEditorStore((s) => s.currentLayoutId);
   const isDirty = useLayoutEditorStore((s) => s.isDirty);
   const saveElements = useLayoutEditorStore((s) => s.saveElements);
+  const selectLayout = useLayoutEditorStore((s) => s.selectLayout);
+  const getLastLayoutIdForProject = useLayoutEditorStore((s) => s.getLastLayoutIdForProject);
   const selectedElementIds = useLayoutEditorStore((s) => s.selectedElementIds);
   const clearSelection = useLayoutEditorStore((s) => s.clearSelection);
   const deleteSelectedElements = useLayoutEditorStore((s) => s.deleteSelectedElements);
@@ -27,11 +31,56 @@ export function LayoutEditor() {
   const redo = useLayoutEditorStore((s) => s.redo);
   const setIsSpaceHeld = useLayoutEditorStore((s) => s.setIsSpaceHeld);
 
+  // null = uninitialized (avoids flash on hydration)
+  const [browseExpanded, setBrowseExpanded] = useState<boolean | null>(null);
+
   useEffect(() => {
     if (selectedProjectId) {
       loadLayouts(selectedProjectId);
     }
   }, [selectedProjectId, loadLayouts]);
+
+  // Auto-open last layout or show browse panel
+  useEffect(() => {
+    if (browseExpanded !== null) return; // already initialized
+    if (!selectedProjectId || layouts.length === 0) {
+      // If layouts loaded but empty, show browse
+      if (selectedProjectId && layouts.length === 0) {
+        setBrowseExpanded(true);
+      }
+      return;
+    }
+
+    const lastId = getLastLayoutIdForProject(selectedProjectId);
+    const hasStoredLayout = lastId && layouts.some((l) => l.id === lastId);
+
+    if (hasStoredLayout) {
+      selectLayout(lastId);
+      setBrowseExpanded(false);
+    } else {
+      setBrowseExpanded(true);
+    }
+  }, [selectedProjectId, layouts, browseExpanded, getLastLayoutIdForProject, selectLayout]);
+
+  // Reset browse state when project changes
+  useEffect(() => {
+    setBrowseExpanded(null);
+  }, [selectedProjectId]);
+
+  const handleOpenBrowse = useCallback(() => {
+    if (isDirty) {
+      if (!confirm("You have unsaved changes. Continue?")) return;
+    }
+    setBrowseExpanded(true);
+  }, [isDirty]);
+
+  const handleSelectLayout = useCallback(
+    (layoutId: string) => {
+      selectLayout(layoutId);
+      setBrowseExpanded(false);
+    },
+    [selectLayout]
+  );
 
   // Keyboard shortcuts
   const handleKeyDown = useCallback(
@@ -106,8 +155,12 @@ export function LayoutEditor() {
         return;
       }
 
-      // Escape → deselect
+      // Escape → deselect, or collapse browse
       if (e.key === "Escape") {
+        if (browseExpanded && currentLayoutId) {
+          setBrowseExpanded(false);
+          return;
+        }
         clearSelection();
         return;
       }
@@ -135,7 +188,7 @@ export function LayoutEditor() {
         moveSelectedElements(dx, dy);
       }
     },
-    [isDirty, saveElements, clearSelection, selectedElementIds, deleteSelectedElements, moveSelectedElements, elements, undo, redo, duplicateSelectedElements, copySelectedElements, cutSelectedElements, pasteElements, setIsSpaceHeld]
+    [isDirty, saveElements, clearSelection, selectedElementIds, deleteSelectedElements, moveSelectedElements, elements, undo, redo, duplicateSelectedElements, copySelectedElements, cutSelectedElements, pasteElements, setIsSpaceHeld, browseExpanded, currentLayoutId]
   );
 
   const handleKeyUp = useCallback(
@@ -177,12 +230,19 @@ export function LayoutEditor() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-lg border">
-      <EditorHeader />
-      <div className="flex flex-1 overflow-hidden">
-        {currentLayoutId && <ElementsPanel />}
-        <CanvasViewport />
-        {currentLayoutId && <PropertiesPanel />}
-      </div>
+      <EditorHeader
+        onOpenBrowse={handleOpenBrowse}
+        browseExpanded={browseExpanded ?? false}
+      />
+      {browseExpanded ? (
+        <LayoutBrowsePanel onSelectLayout={handleSelectLayout} />
+      ) : (
+        <div className="flex flex-1 overflow-hidden">
+          {currentLayoutId && <ElementsPanel />}
+          <CanvasViewport />
+          {currentLayoutId && <PropertiesPanel />}
+        </div>
+      )}
     </div>
   );
 }
