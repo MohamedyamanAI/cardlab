@@ -1,6 +1,7 @@
 import { ToolLoopAgent, stepCountIs } from "ai";
 import { google } from "@ai-sdk/google";
 import type { ToolLoopAgentSettings } from "ai";
+import type { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
 
 type CreateAgentOptions = {
   instructions: string;
@@ -29,5 +30,10 @@ export function createAgent({ instructions, model = "gemini-2.5-flash", maxSteps
       ? tools
       : { google_search: google.tools.googleSearch({}) },
     stopWhen: stepCountIs(maxSteps),
+    providerOptions: {
+      google: {
+        thinkingConfig: { includeThoughts: true },
+      } satisfies GoogleGenerativeAIProviderOptions,
+    },
   } satisfies ToolLoopAgentSettings);
 }

@@ -35,8 +35,10 @@ import {
   saveMessages,
 } from "@/lib/actions/chats";
 import { uploadMedia, resolveMediaIds } from "@/lib/actions/media";
+import { z } from "zod/v4";
 import type { UIMessage, FileUIPart } from "ai";
 import type { AiChat } from "@/lib/types";
+import type { UsageData } from "@/lib/intelligence/core/pricing";
 import { CHAT_MODELS, type ChatModelId } from "@/lib/intelligence/core/providers";
 
 const MODEL_ICONS: Record<ChatModelId, typeof AiChat02Icon> = {
@@ -56,6 +58,30 @@ type PendingAttachment = {
   mediaType: string;
   status: "uploading" | "done" | "error";
 };
+
+type ChatMessageMetadata = {
+  usage?: UsageData;
+};
+
+const messageMetadataSchema = z.object({
+  usage: z
+    .object({
+      inputTokens: z.number(),
+      outputTokens: z.number(),
+      reasoningTokens: z.number(),
+      totalTokens: z.number(),
+      model: z.string(),
+      cost: z.object({
+        inputCost: z.number(),
+        outputCost: z.number(),
+        reasoningCost: z.number(),
+        totalCost: z.number(),
+      }),
+    })
+    .optional(),
+});
+
+type DebugTab = "json" | "usage";
 
 type IdeatorClientProps = {
   initialChats: AiChat[];
@@ -89,6 +115,7 @@ export function IdeatorClient({ initialChats }: IdeatorClientProps) {
 
   const { messages, sendMessage, status, setMessages } = useChat({
     transport,
+    messageMetadataSchema,
     onFinish: async ({ message }) => {
       if (!chatIdRef.current || !pendingUserMessage.current) return;
 
@@ -121,11 +148,14 @@ export function IdeatorClient({ initialChats }: IdeatorClientProps) {
           mediaType: a.mediaType,
         }));
 
+      const usage = (message as UIMessage<ChatMessageMetadata>).metadata?.usage;
+
       const msgs: {
         role: "user" | "assistant" | "tool";
         content: string | null;
         toolCalls?: unknown;
         attachments?: { mediaId: string; filename: string; mediaType: string }[];
+        usage?: UsageData;
       }[] = [
         {
           role: "user",
@@ -139,6 +169,7 @@ export function IdeatorClient({ initialChats }: IdeatorClientProps) {
           role: "assistant",
           content: assistantText || null,
           ...(toolResults.length > 0 && { toolCalls: toolResults }),
+          ...(usage && { usage }),
         });
       }
 
@@ -378,11 +409,23 @@ export function IdeatorClient({ initialChats }: IdeatorClientProps) {
 
   const isDev = process.env.NODE_ENV === "development";
   const [showDebug, setShowDebug] = useState(false);
+  const [debugTab, setDebugTab] = useState<DebugTab>("json");
   const [debugCopied, setDebugCopied] = useState(false);
 
   const rawChatJson = useMemo(() => {
     return JSON.stringify(messages, null, 2);
   }, [messages]);
+
+  const usageSummary = useMemo(() => {
+    return (messages as UIMessage<ChatMessageMetadata>[])
+      .filter((m) => m.role === "assistant" && m.metadata?.usage)
+      .map((m) => m.metadata!.usage!);
+  }, [messages]);
+
+  const totalCost = useMemo(
+    () => usageSummary.reduce((sum, u) => sum + u.cost.totalCost, 0),
+    [usageSummary]
+  );
 
   const handleCopyDebug = useCallback(async () => {
     await navigator.clipboard.writeText(rawChatJson);
@@ -560,18 +603,34 @@ export function IdeatorClient({ initialChats }: IdeatorClientProps) {
         {showDebug && (
           <div className="flex w-[40%] shrink-0 flex-col border-l border-border">
             <div className="flex items-center gap-2 border-b border-border px-3 py-2">
-              <HugeiconsIcon icon={SourceCodeIcon} size={14} className="text-muted-foreground" />
-              <span className="text-xs font-medium text-muted-foreground">Raw JSON</span>
+              <div className="flex gap-1">
+                {(["json", "usage"] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => setDebugTab(tab)}
+                    className={`rounded-md px-2 py-0.5 text-xs font-medium transition-colors ${
+                      debugTab === tab
+                        ? "bg-muted text-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {tab === "json" ? "Raw JSON" : "Usage"}
+                  </button>
+                ))}
+              </div>
               <div className="flex-1" />
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 gap-1.5 px-2 text-xs"
-                onClick={handleCopyDebug}
-              >
-                <HugeiconsIcon icon={debugCopied ? Tick02Icon : Copy01Icon} size={12} />
-                {debugCopied ? "Copied" : "Copy all"}
-              </Button>
+              {debugTab === "json" && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 gap-1.5 px-2 text-xs"
+                  onClick={handleCopyDebug}
+                >
+                  <HugeiconsIcon icon={debugCopied ? Tick02Icon : Copy01Icon} size={12} />
+                  {debugCopied ? "Copied" : "Copy all"}
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="icon-sm"
@@ -580,9 +639,47 @@ export function IdeatorClient({ initialChats }: IdeatorClientProps) {
                 <HugeiconsIcon icon={Cancel01Icon} size={14} />
               </Button>
             </div>
-            <pre className="flex-1 overflow-auto p-3 font-mono text-[11px] leading-relaxed text-muted-foreground">
-              {rawChatJson || "[]"}
-            </pre>
+
+            {debugTab === "json" ? (
+              <pre className="flex-1 overflow-auto p-3 font-mono text-[11px] leading-relaxed text-muted-foreground">
+                {rawChatJson || "[]"}
+              </pre>
+            ) : (
+              <div className="flex-1 overflow-auto p-3">
+                {usageSummary.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No usage data yet.</p>
+                ) : (
+                  <table className="w-full text-[11px]">
+                    <thead>
+                      <tr className="border-b border-border text-left text-muted-foreground">
+                        <th className="pb-1.5 pr-3 font-medium">Model</th>
+                        <th className="pb-1.5 pr-3 font-medium text-right">In</th>
+                        <th className="pb-1.5 pr-3 font-medium text-right">Out</th>
+                        <th className="pb-1.5 pr-3 font-medium text-right">Think</th>
+                        <th className="pb-1.5 font-medium text-right">Cost</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-muted-foreground">
+                      {usageSummary.map((u, i) => (
+                        <tr key={i} className="border-b border-border/50">
+                          <td className="py-1.5 pr-3 font-mono">{u.model}</td>
+                          <td className="py-1.5 pr-3 text-right tabular-nums">{u.inputTokens.toLocaleString()}</td>
+                          <td className="py-1.5 pr-3 text-right tabular-nums">{u.outputTokens.toLocaleString()}</td>
+                          <td className="py-1.5 pr-3 text-right tabular-nums">{u.reasoningTokens.toLocaleString()}</td>
+                          <td className="py-1.5 text-right tabular-nums">${u.cost.totalCost.toFixed(4)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr className="font-medium text-foreground">
+                        <td className="pt-1.5" colSpan={4}>Total</td>
+                        <td className="pt-1.5 text-right tabular-nums">${totalCost.toFixed(4)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -688,6 +785,11 @@ function MessageBubble({
       p.type === "source-url"
   );
 
+  const reasoningParts = message.parts.filter(
+    (p): p is { type: "reasoning"; text: string } => p.type === "reasoning"
+  );
+  const reasoningText = reasoningParts.map((p) => p.text).join("");
+
   const toolParts = message.parts.filter(isToolUIPart);
   const activeTools = toolParts.filter(
     (p) =>
@@ -721,6 +823,18 @@ function MessageBubble({
           </>
         ) : (
           <>
+            {reasoningText && (
+              <details className="mb-2 text-xs text-muted-foreground">
+                <summary className="inline-flex cursor-pointer items-center gap-1.5">
+                  <HugeiconsIcon icon={AiBrain04Icon} size={12} />
+                  Thinking
+                </summary>
+                <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap rounded bg-background/50 p-2 font-mono text-[11px]">
+                  {reasoningText}
+                </pre>
+              </details>
+            )}
+
             {activeTools.map((toolPart) => {
               const name = getToolName(toolPart);
               const display = getToolDisplay(name);

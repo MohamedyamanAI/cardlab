@@ -107,6 +107,19 @@ export async function saveMessages(
     content: string | null;
     toolCalls?: unknown;
     attachments?: { mediaId: string; filename: string; mediaType: string }[];
+    usage?: {
+      inputTokens: number;
+      outputTokens: number;
+      reasoningTokens: number;
+      totalTokens: number;
+      model: string;
+      cost: {
+        inputCost: number;
+        outputCost: number;
+        reasoningCost: number;
+        totalCost: number;
+      };
+    };
   }[]
 ): Promise<ActionResult> {
   const parsed = saveMessagesSchema.safeParse({ chatId, messages });
@@ -131,6 +144,7 @@ export async function saveMessages(
         content: m.content ?? null,
         toolCalls: m.toolCalls as import("@/lib/supabase/database.types").Json | undefined,
         attachments: m.attachments as import("@/lib/supabase/database.types").Json | undefined,
+        usage: m.usage as import("@/lib/supabase/database.types").Json | undefined,
       }))
     );
 

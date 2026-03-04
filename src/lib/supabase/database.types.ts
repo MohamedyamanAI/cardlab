@@ -24,6 +24,7 @@ export type Database = {
           role: Database["public"]["Enums"]["message_role_enum"]
           tool_call_id: string | null
           tool_calls: Json | null
+          usage: Json | null
         }
         Insert: {
           attachments?: Json | null
@@ -34,6 +35,7 @@ export type Database = {
           role: Database["public"]["Enums"]["message_role_enum"]
           tool_call_id?: string | null
           tool_calls?: Json | null
+          usage?: Json | null
         }
         Update: {
           attachments?: Json | null
@@ -44,6 +46,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["message_role_enum"]
           tool_call_id?: string | null
           tool_calls?: Json | null
+          usage?: Json | null
         }
         Relationships: [
           {

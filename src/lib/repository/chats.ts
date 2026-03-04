@@ -135,6 +135,7 @@ export async function bulkCreateMessages(
     toolCalls?: Json;
     toolCallId?: string;
     attachments?: Json;
+    usage?: Json;
   }[]
 ): Promise<void> {
   const rows = messages.map((m) => ({
@@ -144,6 +145,7 @@ export async function bulkCreateMessages(
     tool_calls: m.toolCalls ?? null,
     tool_call_id: m.toolCallId ?? null,
     attachments: m.attachments ?? null,
+    usage: m.usage ?? null,
   }));
 
   const { error } = await supabase.from("ai_chat_messages").insert(rows);

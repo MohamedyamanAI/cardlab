@@ -25,6 +25,21 @@ export const saveMessagesSchema = z.object({
             })
           )
           .optional(),
+        usage: z
+          .object({
+            inputTokens: z.number(),
+            outputTokens: z.number(),
+            reasoningTokens: z.number(),
+            totalTokens: z.number(),
+            model: z.string(),
+            cost: z.object({
+              inputCost: z.number(),
+              outputCost: z.number(),
+              reasoningCost: z.number(),
+              totalCost: z.number(),
+            }),
+          })
+          .optional(),
       })
     )
     .min(1),
