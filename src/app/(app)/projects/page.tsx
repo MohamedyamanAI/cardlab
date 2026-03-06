@@ -1,10 +1,9 @@
-export default function ProjectsPage() {
-  return (
-    <div>
-      <h1 className="text-2xl font-bold">Projects</h1>
-      <p className="mt-2 text-muted-foreground">
-        Manage and browse your card game projects.
-      </p>
-    </div>
-  );
+import { getProjects } from "@/lib/actions/projects";
+import { ProjectsClient } from "@/components/features/projects/projects-client";
+
+export default async function ProjectsPage() {
+  const result = await getProjects();
+  const projects = result.success ? result.data : [];
+
+  return <ProjectsClient initialProjects={projects} />;
 }

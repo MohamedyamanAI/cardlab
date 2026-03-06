@@ -46,3 +46,35 @@ export async function createProject(
   if (error) throw sanitizeError(error, "createProject", { userId });
   return data as Project;
 }
+
+export async function updateProject(
+  supabase: SupabaseClient,
+  projectId: string,
+  userId: string,
+  input: { name?: string; description?: string | null; status?: string }
+): Promise<Project> {
+  const { data, error } = await supabase
+    .from("projects")
+    .update(input)
+    .eq("id", projectId)
+    .eq("user_id", userId)
+    .select()
+    .single();
+
+  if (error) throw sanitizeError(error, "updateProject", { projectId, userId });
+  return data as Project;
+}
+
+export async function deleteProject(
+  supabase: SupabaseClient,
+  projectId: string,
+  userId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from("projects")
+    .delete()
+    .eq("id", projectId)
+    .eq("user_id", userId);
+
+  if (error) throw sanitizeError(error, "deleteProject", { projectId, userId });
+}
