@@ -12,69 +12,31 @@ import {
 } from "@/components/aceternity/sidebar";
 import { cn } from "@/lib/utils/utils";
 import {
-  IconBrush,
-  IconBulb,
-  IconCards,
-  IconFileText,
-  IconFolders,
-  IconPackage,
-  IconSettings,
-  IconTestPipe,
+  IconArrowLeft,
+  IconChartBar,
+  IconDashboard,
 } from "@tabler/icons-react";
 
-const navLinks = [
+const adminLinks = [
   {
-    label: "Projects",
-    href: "/projects",
-    icon: <IconFolders className="h-5 w-5 shrink-0" />,
+    label: "Overview",
+    href: "/overview",
+    icon: <IconDashboard className="h-5 w-5 shrink-0" />,
   },
   {
-    label: "Docs",
-    href: "/docs",
-    icon: <IconFileText className="h-5 w-5 shrink-0" />,
-  },
-  {
-    label: "Ideator",
-    href: "/ideator",
-    icon: <IconBulb className="h-5 w-5 shrink-0" />,
-  },
-  {
-    label: "Cards",
-    href: "/cards",
-    icon: <IconCards className="h-5 w-5 shrink-0" />,
-  },
-  {
-    label: "Generator",
-    href: "/generator",
-    icon: <IconBrush className="h-5 w-5 shrink-0" />,
-  },
-  {
-    label: "Tester",
-    href: "/tester",
-    icon: <IconTestPipe className="h-5 w-5 shrink-0" />,
-  },
-  {
-    label: "Print & Ship",
-    href: "/print-ship",
-    icon: <IconPackage className="h-5 w-5 shrink-0" />,
+    label: "AI Usage",
+    href: "/usage",
+    icon: <IconChartBar className="h-5 w-5 shrink-0" />,
   },
 ];
 
-const adminLink = {
-  label: "Admin",
-  href: "/overview",
-  icon: <IconSettings className="h-5 w-5 shrink-0" />,
-};
-
-function SidebarNav({ isAdmin = false }: { isAdmin?: boolean }) {
+function AdminNav() {
   const { open, animate } = useSidebar();
   const pathname = usePathname();
 
-  const links = isAdmin ? [...navLinks, adminLink] : navLinks;
-
   return (
     <nav className="flex flex-col gap-1">
-      {links.map((link) => {
+      {adminLinks.map((link) => {
         const isActive = pathname.startsWith(link.href);
         return (
           <Link
@@ -104,6 +66,28 @@ function SidebarNav({ isAdmin = false }: { isAdmin?: boolean }) {
           </Link>
         );
       })}
+
+      <div className="my-2 border-t border-neutral-200 dark:border-neutral-700" />
+
+      <Link
+        href="/projects"
+        className="flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-neutral-600 transition-colors hover:bg-neutral-200/60 dark:text-neutral-300 dark:hover:bg-neutral-700/60 group/sidebar"
+      >
+        <IconArrowLeft className="h-5 w-5 shrink-0" />
+        <motion.span
+          animate={{
+            display: animate
+              ? open
+                ? "inline-block"
+                : "none"
+              : "inline-block",
+            opacity: animate ? (open ? 1 : 0) : 1,
+          }}
+          className="whitespace-pre transition duration-150 group-hover/sidebar:translate-x-1"
+        >
+          Back to App
+        </motion.span>
+      </Link>
     </nav>
   );
 }
@@ -135,37 +119,6 @@ function SidebarUser({ email }: { email: string }) {
   );
 }
 
-export function AppSidebar({
-  children,
-  userEmail,
-  isAdmin = false,
-}: {
-  children: React.ReactNode;
-  userEmail: string;
-  isAdmin?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className="flex h-screen w-full bg-background p-2">
-      <Sidebar open={open} setOpen={setOpen}>
-        <SidebarBody className="justify-between rounded-2xl bg-neutral-50 px-2 dark:bg-neutral-900">
-          <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
-            <Logo />
-            <div className="mt-6">
-              <SidebarNav isAdmin={isAdmin} />
-            </div>
-          </div>
-          <SidebarUser email={userEmail} />
-        </SidebarBody>
-      </Sidebar>
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
-      </div>
-    </div>
-  );
-}
-
 function Logo() {
   const { open, animate } = useSidebar();
 
@@ -189,8 +142,37 @@ function Logo() {
         }}
         className="whitespace-pre text-lg font-semibold text-foreground"
       >
-        Cardlab
+        Admin
       </motion.span>
+    </div>
+  );
+}
+
+export function AdminSidebar({
+  children,
+  userEmail,
+}: {
+  children: React.ReactNode;
+  userEmail: string;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="flex h-screen w-full bg-background p-2">
+      <Sidebar open={open} setOpen={setOpen}>
+        <SidebarBody className="justify-between rounded-2xl bg-neutral-50 px-2 dark:bg-neutral-900">
+          <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
+            <Logo />
+            <div className="mt-6">
+              <AdminNav />
+            </div>
+          </div>
+          <SidebarUser email={userEmail} />
+        </SidebarBody>
+      </Sidebar>
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+      </div>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import type {
   GenerationMode,
   ImageModel,
 } from "@/lib/intelligence/core/types";
+import type { ImageUsageData } from "@/lib/intelligence/core/pricing";
 
 export type GenerateParams = {
   prompt: string;
@@ -25,6 +26,7 @@ export type GeneratedImage = {
   seed?: number;
   stylePreset?: string;
   createdAt: string;
+  usage?: ImageUsageData;
   mediaId?: string;
   storageUrl?: string;
 };

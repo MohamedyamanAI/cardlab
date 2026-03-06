@@ -499,6 +499,7 @@ export type Database = {
       media: {
         Row: {
           created_at: string | null
+          generation_meta: Json | null
           id: string
           mime_type: string | null
           original_name: string | null
@@ -509,6 +510,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          generation_meta?: Json | null
           id?: string
           mime_type?: string | null
           original_name?: string | null
@@ -519,6 +521,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          generation_meta?: Json | null
           id?: string
           mime_type?: string | null
           original_name?: string | null

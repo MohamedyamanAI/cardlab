@@ -162,6 +162,7 @@ CREATE TABLE media (
   size_bytes BIGINT,
   storage_path TEXT NOT NULL,
   type media_type_enum NOT NULL DEFAULT 'image',
+  generation_meta JSONB,
 
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -339,6 +340,7 @@ COMMENT ON TABLE decks IS 'Collections of cards (e.g. Starter Deck, Booster Pack
 COMMENT ON TABLE deck_cards IS 'Junction table linking cards to decks with quantities';
 COMMENT ON TABLE media IS 'Metadata for user-uploaded files stored in Supabase Storage';
 COMMENT ON COLUMN media.storage_path IS 'Path in storage bucket: users/{user_id}/{filename}';
+COMMENT ON COLUMN media.generation_meta IS 'AI generation metadata: model, prompt, usage tokens, cost';
 COMMENT ON TABLE ai_chats IS 'Conversation history with the AI assistant';
 COMMENT ON COLUMN ai_chats.project_id IS 'Optional link to a specific project context';
 COMMENT ON TABLE ai_chat_messages IS 'Individual messages in a chat session';

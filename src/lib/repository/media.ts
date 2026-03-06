@@ -25,6 +25,7 @@ export async function createMediaRecord(
     sizeBytes: number;
     storagePath: string;
     type: MediaType;
+    generationMeta?: Record<string, unknown>;
   }
 ): Promise<Media> {
   const { data, error } = await supabase
@@ -36,6 +37,7 @@ export async function createMediaRecord(
       size_bytes: params.sizeBytes,
       storage_path: params.storagePath,
       type: params.type,
+      ...(params.generationMeta && { generation_meta: params.generationMeta }),
     })
     .select()
     .single();

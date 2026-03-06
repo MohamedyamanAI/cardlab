@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { AppSidebar } from "@/components/shared/app-sidebar";
+import { AdminSidebar } from "@/components/shared/admin-sidebar";
 import { isAdminEmail } from "@/lib/utils/admin";
 
-export default async function AppLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -17,12 +17,13 @@ export default async function AppLayout({
     redirect("/auth/login");
   }
 
+  if (!isAdminEmail(user.email ?? "")) {
+    redirect("/projects");
+  }
+
   return (
-    <AppSidebar
-      userEmail={user.email ?? ""}
-      isAdmin={isAdminEmail(user.email ?? "")}
-    >
+    <AdminSidebar userEmail={user.email ?? ""}>
       {children}
-    </AppSidebar>
+    </AdminSidebar>
   );
 }

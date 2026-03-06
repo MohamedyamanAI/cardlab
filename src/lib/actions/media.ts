@@ -91,6 +91,7 @@ export async function saveGeneratedImage(params: {
   prompt: string;
   aspectRatio: string;
   model: string;
+  usage?: Record<string, unknown>;
 }): Promise<ActionResult<Media>> {
   const supabase = await createClient();
   const {
@@ -120,6 +121,12 @@ export async function saveGeneratedImage(params: {
       sizeBytes: buffer.byteLength,
       storagePath,
       type: "image",
+      generationMeta: {
+        model: params.model,
+        prompt: params.prompt,
+        aspectRatio: params.aspectRatio,
+        ...(params.usage && { usage: params.usage }),
+      },
     });
 
     return { success: true, data: media };

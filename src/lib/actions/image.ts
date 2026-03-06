@@ -90,6 +90,7 @@ export async function generateImageAction(
           prompt: image.prompt,
           aspectRatio: image.aspectRatio,
           model: image.model,
+          usage: image.usage as Record<string, unknown> | undefined,
         });
         if (result.success) {
           return { ...image, mediaId: result.data.id };

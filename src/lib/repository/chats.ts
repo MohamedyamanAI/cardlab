@@ -126,6 +126,38 @@ export async function createMessage(
   return data;
 }
 
+export async function getAssistantMessagesWithUsage(
+  supabase: SupabaseClient<Database>,
+  userId: string
+): Promise<AiChatMessage[]> {
+  // Step 1: Get all chat IDs for the user
+  const { data: chats, error: chatsError } = await supabase
+    .from("ai_chats")
+    .select("id")
+    .eq("user_id", userId);
+
+  if (chatsError)
+    throw sanitizeError(chatsError, "getAssistantMessagesWithUsage", {
+      userId,
+    });
+  if (!chats.length) return [];
+
+  const chatIds = chats.map((c) => c.id);
+
+  // Step 2: Get assistant messages with usage data
+  const { data, error } = await supabase
+    .from("ai_chat_messages")
+    .select("*")
+    .in("chat_id", chatIds)
+    .eq("role", "assistant")
+    .not("usage", "is", null)
+    .order("created_at", { ascending: false });
+
+  if (error)
+    throw sanitizeError(error, "getAssistantMessagesWithUsage", { userId });
+  return data;
+}
+
 export async function bulkCreateMessages(
   supabase: SupabaseClient<Database>,
   messages: {

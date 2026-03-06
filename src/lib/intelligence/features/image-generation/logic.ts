@@ -1,6 +1,7 @@
 import { google } from "@ai-sdk/google";
 import { generateImage } from "ai";
 import { IMAGE_STYLE_PRESETS } from "@/lib/intelligence/core/providers";
+import { calculateImageUsage } from "@/lib/intelligence/core/pricing";
 import type { GenerateParams, GeneratedImage } from "./types";
 
 export async function generateImages(
@@ -53,5 +54,8 @@ export async function generateImages(
     seed,
     stylePreset: stylePresetId,
     createdAt: new Date().toISOString(),
+    usage: result.usage
+      ? calculateImageUsage(result.usage, model)
+      : undefined,
   }));
 }
