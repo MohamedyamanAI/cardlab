@@ -9,6 +9,7 @@ pnpm dev          # Start dev server (localhost:3000)
 pnpm build        # Production build
 pnpm lint         # ESLint (v9, flat config)
 pnpm seed         # Seed database (tsx scripts/seed.ts)
+supabase gen types typescript --project-id uowxkpfwbmxuinfvysij > src/lib/supabase/database.types.ts  # Regenerate DB types
 ```
 
 No test runner is configured yet.
