@@ -31,6 +31,11 @@ export function CardsPageClient({ initialProjects }: CardsPageClientProps) {
   const layouts = useLayoutEditorStore((s) => s.layouts);
   const [previewOpen, setPreviewOpen] = useState(true);
   const [historyCardId, setHistoryCardId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     hydrate(initialProjects);
@@ -87,6 +92,21 @@ export function CardsPageClient({ initialProjects }: CardsPageClientProps) {
   const handleCloseHistory = () => setHistoryCardId(null);
 
   const showRightPanel = (previewOpen && canPreview) || historyCard;
+
+  if (!mounted) {
+    return (
+      <div className="flex h-full flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Cards</h1>
+            <p className="text-sm text-muted-foreground">
+              Create and manage your card data.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col gap-4">

@@ -109,6 +109,7 @@ components/
 │   │   │   └── cells/  → Cell renderers by property type (text, number, boolean, color, image, select)
 │   │   ├── preview/    → Card visual preview (layout preview, export renderer, media picker)
 │   │   ├── import/     → CSV/JSON import wizard (steps: source, target, mapping, result)
+│   │   ├── design-import/ → Illustrator (.ai) import wizard (upload, AI analysis, review, result)
 │   │   └── export/     → Export dialog (PDF, spritesheet, card grid previews)
 │   ├── layouts/    → Layout editor (canvas, panels, renderers, rich text)
 │   │   ├── canvas/           → Canvas viewport, element rendering, zoom, rulers, snap guides, marquee
@@ -162,7 +163,8 @@ lib/
 │   ├── core/       → Agent factory, providers, shared types
 │   └── features/   → Feature-specific AI logic
 │       ├── ideation/           → Chat-based ideation (tools, logic, types)
-│       └── image-generation/   → Image generation (logic, types)
+│       ├── image-generation/   → Image generation (logic, types)
+│       └── design-import/      → Illustrator design analysis (logic, schema)
 ├── types/          → Shared type definitions
 │   ├── canvas-elements.ts      → Canvas element types
 │   ├── conditions.ts           → Layout condition types
@@ -183,13 +185,19 @@ lib/
 │   ├── export-data.ts           → Export card data
 │   ├── slugify.ts               → String slugification
 │   ├── utils.ts                 → General helpers (cn, etc.)
-│   └── export/                  → Export pipeline
-│       ├── render-card.ts       → Render card to canvas
-│       ├── generate-pdf.ts      → PDF generation
-│       ├── generate-spritesheet.ts → Spritesheet generation
-│       ├── resolve-cards.ts     → Resolve card data for export
-│       ├── download.ts          → Download helpers
-│       └── index.ts             → Export barrel
+│   ├── export/                  → Export pipeline
+│   │   ├── render-card.ts       → Render card to canvas
+│   │   ├── generate-pdf.ts      → PDF generation
+│   │   ├── generate-spritesheet.ts → Spritesheet generation
+│   │   ├── resolve-cards.ts     → Resolve card data for export
+│   │   ├── download.ts          → Download helpers
+│   │   └── index.ts             → Export barrel
+│   └── design-import/           → Design file parsing pipeline
+│       ├── illustrator/         → Adobe Illustrator (.ai) format
+│       │   ├── pdf-parser.ts    → Core PDF parsing, text extraction, page rendering
+│       │   ├── native-text.ts    → Native PostScript Tx text extraction
+│       │   └── pdf-images.ts    → Embedded image extraction, placements, cropping
+│       └── index.ts             → Re-exports
 └── client/         → Browser-only utilities (empty)
 ```
 

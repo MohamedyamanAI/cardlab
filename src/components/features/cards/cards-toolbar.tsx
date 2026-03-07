@@ -2,9 +2,16 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useCardsStore } from "@/lib/store/cards-store";
 import { AddColumnPopover } from "./grid/add-column-popover";
 import { ImportDialog } from "./import/import-dialog";
+import { DesignImportDialog } from "./design-import/design-import-dialog";
 import { ExportDropdown } from "./export/export-dropdown";
 import {
   IconPlus,
@@ -13,6 +20,8 @@ import {
   IconEye,
   IconFileImport,
   IconHistory,
+  IconTable,
+  IconPalette,
 } from "@tabler/icons-react";
 
 interface CardsToolbarProps {
@@ -33,6 +42,7 @@ export function CardsToolbar({ previewOpen, onTogglePreview, historyOpen, onTogg
   } = useCardsStore();
   const cards = filteredCards();
   const [importOpen, setImportOpen] = useState(false);
+  const [designImportOpen, setDesignImportOpen] = useState(false);
 
   if (!selectedProjectId) return null;
 
@@ -52,11 +62,26 @@ export function CardsToolbar({ previewOpen, onTogglePreview, historyOpen, onTogg
         </Button>
       </AddColumnPopover>
 
-      <Button size="sm" variant="outline" onClick={() => setImportOpen(true)}>
-        <IconFileImport size={14} className="mr-1.5" />
-        Import
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button size="sm" variant="outline">
+            <IconFileImport size={14} className="mr-1.5" />
+            Import
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuItem onClick={() => setImportOpen(true)}>
+            <IconTable size={14} className="mr-2" />
+            From CSV/JSON...
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setDesignImportOpen(true)}>
+            <IconPalette size={14} className="mr-2" />
+            From Design File (.ai)...
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
       <ImportDialog open={importOpen} onOpenChange={setImportOpen} />
+      <DesignImportDialog open={designImportOpen} onOpenChange={setDesignImportOpen} />
 
       <ExportDropdown />
 
