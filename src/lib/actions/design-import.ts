@@ -189,28 +189,26 @@ export async function executeDesignImport(
       if (!slug) continue;
 
       if (el.elementType === "text") {
-        // AI returns tight text bounding boxes from PDF text items.
-        // Expand to reasonable minimums so text isn't clipped in the editor.
         const scaledW = Math.round(el.width * pdfToPixelScale);
         const scaledH = Math.round(el.height * pdfToPixelScale);
         const fontSize = el.textStyle?.fontSize
           ? Math.round(el.textStyle.fontSize * pdfToPixelScale)
           : 24;
-        // Width: at least 60% of card width, height: at least 2× font size
-        const minWidth = Math.round(input.cardWidth * 0.6);
-        const minHeight = fontSize * 2;
+        // Small padding to prevent clipping, min height = 1 line
+        const PAD = 8;
+        const minHeight = Math.round(fontSize * 1.4);
 
         elements.push(
           createTextElement({
             bind_to: slug,
             x: Math.round(el.x * pdfToPixelScale),
             y: Math.round(el.y * pdfToPixelScale),
-            width: Math.max(scaledW, minWidth),
+            width: scaledW + PAD,
             height: Math.max(scaledH, minHeight),
             z_index: el.zIndex,
             font_size: fontSize,
             font_weight: el.textStyle?.fontWeight ?? "normal",
-            text_align: el.textStyle?.textAlign ?? "center",
+            text_align: el.textStyle?.textAlign ?? "left",
             color: el.textStyle?.color ?? "#ffffff",
             font_family: el.textStyle?.fontFamily,
           })

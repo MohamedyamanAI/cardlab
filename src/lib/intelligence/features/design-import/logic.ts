@@ -33,7 +33,13 @@ Example: If you detect properties "Card Name" (text) and "Cost" (number), and yo
 You MUST do this for EVERY page. Never return {"data": {}}.
 
 ## 3. Detect Layout Elements
-For each property, specify where on the card template it appears as an overlay element. Use the text item positions from page 1 as positional reference (coordinates are in PDF points from top-left). Infer text styling (font size, weight, alignment, color).
+For each property, specify where on the card template it appears as an overlay element. Use the text item positions from page 1 as positional reference (coordinates are in PDF points from top-left).
+
+IMPORTANT positioning rules:
+- x, y, width, height are ALL in PDF points (same unit as the input text items)
+- fontSize is ALSO in PDF points (same unit — do NOT convert to pixels)
+- The width/height should be the FULL bounding box of the text region, not a tight character-level box. Include enough space for the longest value across all cards.
+- Infer font weight, alignment, and color from the visual appearance.
 
 ## 4. Identify Artwork Area
 Look for the main illustration/artwork area — typically the largest region without text. Return its bounding box in PDF points, or null if no distinct artwork region exists.
@@ -43,7 +49,7 @@ Convert PDF page dimensions (in points, 72 DPI) to pixels at 300 DPI: pixels = p
 
 ## Rules
 - Only include properties whose text actually varies between pages
-- Positions in PDF points (same coordinate system as input text items)
+- ALL measurements (x, y, width, height, fontSize) in PDF points (same coordinate system as input text items)
 - z-index 0 is reserved for background — overlay elements start at z-index 1
 - If artwork area exists, include an "Artwork" property with type "image"
 - Card data keys MUST match detected property names exactly
